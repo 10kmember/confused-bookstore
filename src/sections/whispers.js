@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import { P, rgba } from '../core/palette.js';
 import { audio } from '../core/audio.js';
 import { flagData, mountIcon } from '../core/lottieIcons.js';
+import { book } from '../content/book.js';
 import { env, fitCanvas, tier } from '../util/env.js';
 import { clamp, rand } from '../util/math.js';
 
@@ -11,16 +12,8 @@ const STORE = 'confused-bookstore/whispers';
 const MAX_STORED = 40;
 const LIFETIME = 46; // seconds before a whisper forgets itself
 
-const SEED = [
-  'I only came here for the physics',
-  'chapter 9 happens twice and I liked it',
-  'the book threw itself at me',
-  'is the author okay',
-  'I understood none of it. buying two.',
-  'the napkin was mine',
-  'left my glasses in the reading room',
-  'confidence: 92%. results: pending.',
-];
+/** Whispers the room starts with; edit them in src/content/book.js. */
+const SEED = book.whisperSeeds;
 
 /**
  * Whispers drift upward through a projected z-space, then break apart into

@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>How to Bag a Billionaire's Daughter — The Confused Bookstore</title>
-    <meta
-      name="description"
-      content="One book. One author. Zero clarity. A field manual for the alpha acquirer, sold from inside a physics-based dream library."
-    />
+    <title>{{title}} — The Confused Bookstore</title>
+    <meta name="description" content="{{description}}" />
+    <meta property="og:title" content="{{title}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta property="og:type" content="book" />
     <meta name="theme-color" content="#F1ECE6" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237D4047'/%3E%3Crect x='9' y='6' width='14' height='20' rx='2' fill='%23F1ECE6'/%3E%3Crect x='9' y='6' width='4' height='20' fill='%23F4B044'/%3E%3C/svg%3E" />
   </head>
@@ -68,15 +68,13 @@
         <canvas class="layer layer--webgl" id="hero-webgl" aria-hidden="true"></canvas>
 
         <div class="threshold__copy">
-          <p class="eyebrow">A field manual for the alpha acquirer</p>
+          <p class="eyebrow">{{subtitle}}</p>
           <h1 class="threshold__title">
-            <span>How to Bag a</span>
-            <span class="tilt-a">Billionaire's</span>
-            <span class="tilt-b">Daughter</span>
+            {{titleLines}}
           </h1>
           <p class="threshold__byline">
-            by <strong>Chadwick P. Worthington III</strong><br />
-            <em>Founder, The Alpha Acquirer Institute</em>
+            by <strong>{{author}}</strong><br />
+            <em>{{authorRole}}</em>
           </p>
           <div class="threshold__actions">
             <button class="btn btn--primary" data-goto="portal" data-sfx="chime">Take this confusion home</button>
@@ -137,9 +135,7 @@
           </p>
         </div>
         <ol class="stats" id="stats"></ol>
-        <blockquote class="pullquote">
-          “It is not a store. It is a place where a book lives, and you are merely visiting its dream.”
-        </blockquote>
+        <blockquote class="pullquote">“{{pullquote}}”</blockquote>
       </section>
 
       <!-- ══════════ 04 — THE WHISPER WALL ══════════ -->
@@ -174,16 +170,30 @@
         <div class="portal__grid">
           <div class="portal__book">
             <canvas id="portal-webgl" aria-hidden="true"></canvas>
-            <p class="portal__caption">247 pages. Hardcover. Regrettably real weight.</p>
+            <p class="portal__caption" id="portal-caption">{{editionTagline}}</p>
           </div>
 
           <div class="portal__side">
             <p class="chapter chapter--light">05</p>
             <h2 class="display">Claim the Confusion</h2>
 
+            <fieldset class="editions" id="editions">
+              <legend class="sr-only">Choose an edition</legend>
+            </fieldset>
+
+            <div class="sample" id="sample" hidden>
+              <button class="sample__play" id="sample-play" type="button" aria-pressed="false">
+                <span class="sample__icon" aria-hidden="true"></span>
+                <span class="sample__label">Hear a minute of it</span>
+              </button>
+              <canvas class="sample__wave" id="sample-wave" aria-hidden="true"></canvas>
+              <p class="sample__meta" id="sample-meta"></p>
+            </div>
+
             <p class="price" id="price" tabindex="0" aria-describedby="price-quote">
-              <span class="price__currency">$</span><span class="price__value">34</span><span class="price__cents">.00</span>
+              <span class="price__currency" id="price-currency">$</span><span class="price__value" id="price-value">{{priceWhole}}</span><span class="price__cents" id="price-cents">{{priceCents}}</span>
             </p>
+            <p class="edition-detail" id="edition-detail"></p>
             <p class="price__quote" id="price-quote" role="status">Hover the price. It will not discount. It will only quote.</p>
 
             <form class="checkout" id="checkout" novalidate>
@@ -206,11 +216,9 @@
                   <input id="co-city" name="city" type="text" placeholder="Somewhere with a yacht club" />
                 </div>
               </div>
+              <p class="checkout__total" id="checkout-total"></p>
               <button class="btn btn--cta" type="submit" data-sfx="chime">Take this confusion home</button>
-              <p class="checkout__fineprint">
-                Demonstration checkout. No payment details are requested, collected, or processed —
-                this is a design piece, and the book is a work of satire.
-              </p>
+              <p class="checkout__fineprint" id="checkout-fineprint">{{fineprint}}</p>
             </form>
           </div>
         </div>
@@ -249,7 +257,7 @@
     <div class="receipt" id="receipt" aria-hidden="true">
       <div class="receipt__card">
         <p class="receipt__stamp">Checked&nbsp;Out</p>
-        <p class="receipt__title">How to Bag a Billionaire's Daughter</p>
+        <p class="receipt__title">{{title}}</p>
         <p class="receipt__line" id="receipt-line"></p>
         <p class="receipt__due">Due back: never. It was never ours.</p>
         <button class="btn btn--ghost btn--ghost-light" id="receipt-close">Return to the dream</button>

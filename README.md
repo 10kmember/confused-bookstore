@@ -8,6 +8,9 @@ Alpha Acquirer Institute. The book, the author and the Institute are fiction —
 this is a satire, and the checkout is a demonstration that takes no payment
 details of any kind.
 
+**Selling your own book here is a one-file change** — title, cover, editions,
+prices, gallery and all. See [CONTENT.md](CONTENT.md).
+
 ```bash
 npm install
 npm run dev      # vite dev server
@@ -28,8 +31,34 @@ The output in `dist/` is a static site: any file host will do.
 | 02 | **The Physics Reading Room** | A Rapier 2D desk. Click to detonate, drag to relocate, invert gravity, make it rain. The book at the centre is heavier than everything else and magnetically attached to the middle. |
 | 03 | **The Confused Manifesto** | Numbered statistics, counted up on scroll, stated with total confidence and no evidence. The page turns to night here. |
 | 04 | **The Whisper Wall** | Sixty characters at a time, drifting upward through a projected z-space until they come apart into their own letters. |
-| 05 | **The Purchase Portal** | The book returns, life-sized. The price does not discount; it quotes literature. The checkout is styled as a library card. |
+| 05 | **The Purchase Portal** | The book returns, life-sized. Hardcover, eBook, audiobook or all three — the audiobook brings a sample player with a live waveform. The price does not discount; it quotes literature. The checkout is styled as a library card. |
 | — | **The Void** | There is no footer. Footers imply an ending. |
+
+---
+
+## Selling a book
+
+The whole shop is driven by `src/content/book.js`: identity, cover artwork,
+editions, prices, gallery plates, statistics, whispers and quotes. Point it at a
+different book and the 3D cover, the headline, the page title, the gallery and
+the checkout all follow.
+
+**Editions.** Anything you list — hardcover, eBook, audiobook, a bundle — becomes
+a chip in the purchase portal. An edition with an `audio.sample` gets a player
+with a Burnt Orange waveform, running on its own audio context so the ambient
+mute never silences it.
+
+**One price, every region.** The number is identical worldwide; only the symbol
+changes — `£34` in the UK, `€34` in the eurozone, `$34` everywhere else.
+`middleware.js` is Vercel Edge Middleware that reads the request's country and
+leaves a `currency` cookie; off Vercel the browser's locale is used instead.
+Append `?currency=GBP` to any URL to force one.
+
+**Real payments.** Give an edition a payment link per currency and the checkout
+stops being a demonstration and hands the visitor to the provider, quantity and
+email attached. Without links it stays the honest demo it claims to be, and the
+fine print says so either way. The book file itself belongs with the payment
+provider, not in `public/` — see CONTENT.md.
 
 ---
 
@@ -62,10 +91,14 @@ all generated on a 2D canvas at runtime.
 
 ```
 index.html               markup for all six sections and the chrome
+middleware.js            Vercel Edge Middleware: region → currency cookie
+vercel.json              build settings and cache headers
 src/
+  content/book.js        THE BOOK — the only file you edit to sell another one
   main.js                boot sequence, the single rAF loop, lazy section init
   core/
     palette.js           the eight colours, in one place
+    currency.js          which symbol this visitor sees
     smoothScroll.js      eased native scrolling (see "Deviations")
     cursor.js            the quill and its gold trail
     audio.js             the library at midnight, synthesised
@@ -94,6 +127,10 @@ Some notes on how it is put together:
 - **Frame-rate independence.** Springs and damping are expressed per second, not
   per frame; the physics world catches up to real time with a bounded
   accumulator. A book on a 30 fps laptop settles like one on a 144 Hz monitor.
+- **Content is poured in at build time.** A small Vite plugin writes the book's
+  title, byline and price into `index.html`, so the markup that ships is already
+  correct for search engines and social cards and no visitor sees the wrong book
+  flash past before the JavaScript arrives.
 
 ---
 
@@ -137,6 +174,16 @@ Each of these was a deliberate trade, not an omission:
 - Keyboard scrolling, focus rings and reduced-motion paths were all part of the
   build rather than an afterthought — though this is an experimental piece, and a
   screen-reader-first experience it is not.
+
+## Deploying
+
+```bash
+vercel --prod        # or connect the repo at vercel.com/new
+```
+
+Vercel reads `vercel.json`, builds with Vite to `dist/`, and picks up
+`middleware.js` automatically. Any static host works too — you simply lose the
+region detection and fall back to the browser's locale.
 
 ## Browser support
 

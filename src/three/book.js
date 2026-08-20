@@ -25,20 +25,28 @@ export function createBook({ scale = 1 } = {}) {
       metalness: 0.06,
     });
 
-  const frontMat = new THREE.MeshStandardMaterial({
-    map: cover.map,
-    metalnessMap: cover.metalRough,
-    roughnessMap: cover.metalRough,
-    // Polished metal reflects the room and little else, which leaves gold leaf
-    // looking like dark paint. A gentle emissive pass on the stamped areas
-    // gives it the glow it has under a reading lamp.
-    emissive: 0xffffff,
-    emissiveMap: cover.glow,
-    emissiveIntensity: 0.42,
-    metalness: 1,
-    roughness: 1,
-    envMapIntensity: 2.1,
-  });
+  // Uploaded artwork is ink on board; the drawn cover is gold leaf on leather.
+  // Polished metal reflects the room and little else, which leaves foil looking
+  // like dark paint, so the stamped areas get a gentle emissive pass to give
+  // them the glow they have under a reading lamp.
+  const frontMat = cover.printed
+    ? new THREE.MeshStandardMaterial({
+        map: cover.map,
+        roughness: 0.58,
+        metalness: 0.04,
+        envMapIntensity: 0.8,
+      })
+    : new THREE.MeshStandardMaterial({
+        map: cover.map,
+        metalnessMap: cover.metalRough,
+        roughnessMap: cover.metalRough,
+        emissive: 0xffffff,
+        emissiveMap: cover.glow,
+        emissiveIntensity: 0.42,
+        metalness: 1,
+        roughness: 1,
+        envMapIntensity: 2.1,
+      });
 
   const spineMat = new THREE.MeshStandardMaterial({
     map: spineMap,

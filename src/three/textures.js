@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { P, rgba } from '../core/palette.js';
+import { book } from '../content/book.js';
 import { seeded } from '../util/math.js';
 
 /**
@@ -25,6 +26,22 @@ const toTexture = (canvas, { srgb = true, repeat = null } = {}) => {
   }
   return tex;
 };
+
+/** 'INSTITUTE' → 'I N S T I T U T E' */
+const spaced = (text) => [...text].join(' ');
+
+/**
+ * Draw text that must not run off the boards: if it is too wide for the space,
+ * the point size steps down until it fits. Callers set the font first.
+ */
+function stamp(ctx, text, x, y, maxWidth) {
+  const width = ctx.measureText(text).width;
+  if (width > maxWidth) {
+    const px = Number(ctx.font.match(/([\d.]+)px/)?.[1]);
+    if (px) ctx.font = ctx.font.replace(/[\d.]+px/, `${px * (maxWidth / width)}px`);
+  }
+  ctx.fillText(text, x, y);
+}
 
 /** Speckled, slightly blotchy leather in Vintage Rosewood. */
 function paintLeather(ctx, w, h, base = P.rose) {
@@ -105,22 +122,30 @@ export function bookCoverTextures({ size = 768 } = {}) {
     c.strokeRect(m * 1.28, m * 1.28, w - m * 2.56, h - m * 2.56);
   });
 
+  // Stamped line by line from src/content/book.js, and the type steps down to
+  // fit however many lines — and however long a line — the book happens to have.
+  const lines = book.titleLines.map((line) => line.toUpperCase());
+  const lineStep = h * (lines.length > 4 ? 0.086 : 0.105);
+  const titleSize = Math.min(w * 0.155, lineStep * 1.35);
+  const titleTop = h * 0.5 - ((lines.length - 1) * lineStep) / 2;
+
   foil((c, color) => {
     c.fillStyle = color;
     c.textAlign = 'center';
 
     c.font = `700 ${w * 0.052}px Nunito, sans-serif`;
-    c.fillText('T H E   A L P H A   A C Q U I R E R   I N S T I T U T E', w / 2, h * 0.19);
+    stamp(c, spaced(book.imprint.toUpperCase()), w / 2, h * 0.19, w * 0.82);
 
-    const lines = ['HOW TO', 'BAG A', "BILLIONAIRE'S", 'DAUGHTER'];
-    c.font = `700 ${w * 0.155}px 'Amatic SC', cursive`;
-    lines.forEach((line, i) => c.fillText(line, w / 2, h * 0.4 + i * h * 0.105));
+    lines.forEach((line, i) => {
+      c.font = `700 ${titleSize}px 'Amatic SC', cursive`;
+      stamp(c, line, w / 2, titleTop + i * lineStep, w * 0.76);
+    });
 
     c.font = `400 ${w * 0.042}px Nunito, sans-serif`;
-    c.fillText('A FIELD MANUAL FOR THE ALPHA ACQUIRER', w / 2, h * 0.795);
+    stamp(c, book.subtitle.toUpperCase(), w / 2, h * 0.795, w * 0.8);
 
     c.font = `700 ${w * 0.05}px Nunito, sans-serif`;
-    c.fillText('CHADWICK P. WORTHINGTON III', w / 2, h * 0.86);
+    stamp(c, book.author.toUpperCase(), w / 2, h * 0.86, w * 0.8);
 
     // a small, extremely serious crest
     c.beginPath();
@@ -129,7 +154,7 @@ export function bookCoverTextures({ size = 768 } = {}) {
     c.strokeStyle = color;
     c.stroke();
     c.font = `700 ${w * 0.05}px 'Amatic SC', cursive`;
-    c.fillText('III', w / 2, h * 0.305);
+    c.fillText(book.monogram, w / 2, h * 0.305);
   });
 
   return {
@@ -166,7 +191,7 @@ export function spineTexture() {
   ctx.rotate(Math.PI / 2);
   ctx.textAlign = 'center';
   ctx.font = `700 ${w * 0.42}px 'Amatic SC', cursive`;
-  ctx.fillText('HOW TO BAG A BILLIONAIRE’S DAUGHTER', 0, w * 0.16);
+  stamp(ctx, book.title.toUpperCase(), 0, w * 0.16, h * 0.82);
   ctx.restore();
   return toTexture(c);
 }
@@ -206,6 +231,24 @@ export function sparkTexture(color = P.gold) {
 }
 
 
+/**
+ * Swap a drawn texture for an uploaded image once it arrives. The book is on
+ * screen from the first frame either way; the artwork simply replaces the
+ * stamping when the file has loaded.
+ */
+function useImage(url, texture) {
+  new THREE.TextureLoader().load(
+    url,
+    (loaded) => {
+      texture.image = loaded.image;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+    },
+    undefined,
+    () => console.warn(`Artwork could not be loaded: ${url}`)
+  );
+}
+
 let _bookTextures = null;
 /**
  * The hero and the purchase portal show the same book; generating (and
@@ -213,13 +256,22 @@ let _bookTextures = null;
  * page did, so the set is built once and shared.
  */
 export function bookTextures() {
-  if (!_bookTextures) {
-    _bookTextures = {
-      cover: bookCoverTextures(),
-      leather: leatherTexture(),
-      spine: spineTexture(),
-      pages: pagesTexture(),
-    };
-  }
+  if (_bookTextures) return _bookTextures;
+
+  const cover = bookCoverTextures();
+  const spine = spineTexture();
+
+  // An uploaded cover is printed artwork, not foil on leather, so it drops the
+  // metal and emissive masks and reads as ink on board instead.
+  const printed = Boolean(book.cover?.image);
+  if (printed) useImage(book.cover.image, cover.map);
+  if (book.cover?.spineImage) useImage(book.cover.spineImage, spine);
+
+  _bookTextures = {
+    cover: { ...cover, printed },
+    leather: leatherTexture(),
+    spine,
+    pages: pagesTexture(),
+  };
   return _bookTextures;
 }

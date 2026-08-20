@@ -1,42 +1,11 @@
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
+import { book } from '../content/book.js';
 
 /* ═══════════════ 03 — THE CONFUSED MANIFESTO ═══════════════ */
 
-const STATS = [
-  {
-    value: 247,
-    label: 'Pages of deliberate confusion',
-    note: 'Numbered 1 through 247, though chapter nine appears twice and chapter ten does not appear at all.',
-  },
-  {
-    value: 13,
-    label: 'Chapters that refuse to stay in order',
-    note: 'The publisher tried three times. The chapters kept rearranging themselves overnight.',
-  },
-  {
-    value: 1,
-    label: 'Book. One author. Zero clarity.',
-    note: 'The author is credited eleven times on the cover matter, which is nine more times than is traditional.',
-  },
-  {
-    value: 0,
-    label: "Billionaires' daughters, verifiably bagged",
-    suffix: '',
-    note: 'The methodology is described as “forward-looking”. Results are described as “imminent”.',
-  },
-  {
-    value: 92,
-    suffix: '%',
-    label: 'Confidence, entirely unearned',
-    note: 'Measured by the author, using an instrument the author also built.',
-  },
-  {
-    value: 6,
-    label: 'Legal documents, framed and hung',
-    note: 'He calls them reviews. They are not reviews.',
-  },
-];
+/** The numbers themselves live in src/content/book.js. */
+const STATS = book.stats;
 
 export function initManifesto() {
   const list = document.getElementById('stats');
