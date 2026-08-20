@@ -183,10 +183,37 @@ api/download.js      hands over a file to a signed, expiring link
 api/setup-check.js   tells you which of the pieces below are actually set
 ```
 
-**Step 1 — put the files somewhere private.**
-Vercel Blob, Cloudflare R2, Amazon S3, Backblaze B2 — anywhere that gives you a
-URL you keep to yourself. Do **not** put them in `public/`: everything there is
-downloadable by anyone who guesses the path.
+**Step 1 — put the files somewhere private.** Recommended, free, and the least
+setup for one person selling one book: **Cloudflare R2**.
+
+- Free tier: 10 GB storage, and — the part that matters for audiobooks —
+  **zero cost to download from it**, ever. (Most free tiers cap or charge for
+  the bytes leaving the bucket; R2 doesn't. An 8-hour audiobook is a few
+  hundred MB per volume, and normal egress pricing adds up fast at that size.)
+- No card required to start.
+
+Steps:
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → sign up free → **R2**
+   in the left sidebar → **Create bucket**. Any name, e.g. `your-book-files`.
+2. Upload the four files (`vol-1.epub`, `vol-2.epub`, `vol-1.m4b`, `vol-2.m4b`).
+3. Bucket **Settings** → **Public access** → enable it, *or* attach a custom
+   subdomain (`files.yourdomain.com`) if you'd rather not use the r2.dev one.
+   This makes each object reachable at a long, unguessable URL — nobody finds
+   it without being told, and nobody is told except the buyer, whose link is
+   the signed, expiring one this site emails them (see Step 2 below). The R2
+   URL itself is never shown to anyone.
+4. Click each file → copy its **public URL**. That's what goes in
+   `BOOK_FILES`.
+
+**Alternatives**, if you'd rather stay inside Vercel or already use AWS:
+Vercel Blob (free tier, same dashboard as your deployment, simplest if you
+don't want a second account) · Backblaze B2 (10 GB free, cheap egress beyond
+that) · Amazon S3 (free for the first 12 months, then pay-as-you-go). All of
+them give you a URL the same way R2 does.
+
+Whichever you pick: do **not** put the files in `public/` in this repository.
+Everything there ships with the site and is downloadable by anyone who
+guesses the path — there is no privacy step to skip.
 
 **Step 2 — give each file a key, and map the keys to those URLs.**
 The keys are yours to choose. Two volumes in two formats is four keys:
