@@ -152,10 +152,6 @@ export function initThreshold() {
     { y: 26, opacity: 0, duration: 1.1, ease: 'power3.out', stagger: 0.1, delay: 0.9 }
   );
 
-  if (env.coarse) {
-    document.getElementById('hero-hint').textContent = 'Drag the book. Throw it. It always comes back.';
-  }
-
   if (env.reduced) {
     field.draw(0);
     window.addEventListener('resize', () => field.draw(0));

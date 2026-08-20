@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { book } from './src/content/book.js';
+import { siteUrl, wellKnownFiles } from './src/content/wellKnown.js';
 
 const escape = (value) =>
   String(value)
@@ -32,7 +33,17 @@ function bookContent() {
           })
           .join('\n            ');
 
+        const url = siteUrl();
+        const cover = book.cover?.image ? (url ? url + book.cover.image : book.cover.image) : '';
+
         const tokens = {
+          // Each carries its own leading break, so an empty one leaves no gap.
+          canonical: url ? `\n    <link rel="canonical" href="${url}/" />` : '',
+          ogUrl: url ? `\n    <meta property="og:url" content="${url}/" />` : '',
+          ogImage: cover
+            ? `\n    <meta property="og:image" content="${escape(cover)}" />\n    <meta name="twitter:card" content="summary_large_image" />`
+            : '\n    <meta name="twitter:card" content="summary" />',
+          language: escape(book.site?.language || 'en'),
           title: escape(book.title),
           subtitle: escape(book.subtitle),
           author: escape(book.author),
@@ -51,7 +62,7 @@ function bookContent() {
           key in tokens ? tokens[key] : match
         );
 
-        return filled.replace('</head>', `    ${structuredData()}\n  </head>`);
+        return filled.replace('</head>', `  ${structuredData()}\n  </head>`);
       },
     },
   };
@@ -91,9 +102,40 @@ function structuredData() {
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
 }
 
+/**
+ * robots.txt, sitemap.xml, llms.txt and friends, written from the same book
+ * data as the page — emitted into the build and served in dev, so what you can
+ * open locally is exactly what deploys.
+ */
+function wellKnown() {
+  return {
+    name: 'confused-bookstore:well-known',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = req.url.split('?')[0].replace(/^\//, '');
+        const match = wellKnownFiles().find(([name]) => name === path);
+        if (!match) return next();
+        res.setHeader('content-type', contentType(match[0]));
+        res.end(match[1]);
+      });
+    },
+    generateBundle() {
+      for (const [fileName, source] of wellKnownFiles()) {
+        this.emitFile({ type: 'asset', fileName, source });
+      }
+    },
+  };
+}
+
+const contentType = (name) =>
+  ({
+    'sitemap.xml': 'application/xml; charset=utf-8',
+    'site.webmanifest': 'application/manifest+json; charset=utf-8',
+  })[name] || 'text/plain; charset=utf-8';
+
 export default defineConfig({
   base: './',
-  plugins: [bookContent()],
+  plugins: [bookContent(), wellKnown()],
   server: { host: true, port: 5173 },
   build: {
     target: 'es2022',

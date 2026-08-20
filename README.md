@@ -54,6 +54,11 @@ changes — `£34` in the UK, `€34` in the eurozone, `$34` everywhere else.
 leaves a `currency` cookie; off Vercel the browser's locale is used instead.
 Append `?currency=GBP` to any URL to force one.
 
+**Findable.** Every build writes `robots.txt`, `sitemap.xml`, `llms.txt`, a web
+manifest, `humans.txt` and — when a contact address is configured —
+`security.txt`, all generated from the same book data as the page, alongside
+schema.org `Book` markup and canonical/Open Graph tags.
+
 **Real payments and delivery.** The button has three modes. `demo` takes
 nothing. `links` hands the buyer to a checkout you already run. `stripe` sells
 the book from here: four small functions in `api/` create the Stripe session,
@@ -99,6 +104,7 @@ vercel.json              build settings and cache headers
 api/                     checkout, Stripe webhook, signed downloads, setup check
 src/
   content/book.js        THE BOOK — the only file you edit to sell another one
+  content/wellKnown.js   robots, sitemap, llms.txt and friends, written from it
   main.js                boot sequence, the single rAF loop, lazy section init
   core/
     palette.js           the eight colours, in one place

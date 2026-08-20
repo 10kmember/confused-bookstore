@@ -7,7 +7,8 @@
   background: var(--cream);
   color: var(--ink);
   padding-block: clamp(5rem, 11vh, 9rem);
-  padding-inline: calc(var(--gutter) + var(--rail-w));
+  padding-inline: max(calc(var(--gutter) + var(--rail-w)), env(safe-area-inset-left))
+    max(calc(var(--gutter) + var(--rail-w)), env(safe-area-inset-right));
   min-height: 100svh;
   isolation: isolate;
 }
@@ -195,6 +196,11 @@
   left: auto;
   width: min(78vw, 320px);
 }
+@media (min-width: 600px) {
+  .spiral__stage--column .spiral-item {
+    width: min(58vw, 440px);
+  }
+}
 .spiral__stage--column .spiral-item:nth-child(odd) {
   justify-self: start;
 }
@@ -232,6 +238,9 @@
 .spiral-item.is-in .spiral-item__frame {
   --enter: 1;
   --enter-o: 1;
+}
+.spiral-item:focus-visible .spiral-item__frame {
+  box-shadow: 0 0 0 2px var(--gold), 0 40px 70px -34px rgb(var(--night-rgb) / 0.9);
 }
 .spiral-item:hover .spiral-item__frame {
   box-shadow: 0 40px 70px -34px rgb(var(--night-rgb) / 0.9);
@@ -345,7 +354,7 @@
 }
 .room__tools {
   position: absolute;
-  bottom: 0.9rem;
+  bottom: max(0.9rem, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -391,7 +400,7 @@
   padding: clamp(0.9rem, 2vh, 1.6rem) 0;
   border-top: 1px solid rgb(var(--gold-rgb) / 0.22);
 }
-@media (max-width: 820px) {
+@media (max-width: 680px) {
   .stat {
     grid-template-columns: 2.6rem minmax(0, 1fr);
     gap: 0.4rem 1rem;
@@ -422,9 +431,10 @@
   align-self: center;
   text-align: right;
 }
-@media (max-width: 820px) {
+@media (max-width: 680px) {
   .stat__value {
     text-align: left;
+    font-size: clamp(3rem, 14vw, 4.2rem);
   }
 }
 .stat__label {
@@ -497,6 +507,10 @@
 }
 .whisper-form input:focus {
   border-color: var(--gold);
+}
+.whisper-form input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
 }
 .whisper-form__count {
   position: absolute;
@@ -616,8 +630,12 @@
   display: inline-flex;
   align-items: flex-start;
   cursor: help;
-  outline: none;
+  border-radius: 6px;
   font-variant-numeric: tabular-nums;
+}
+.price:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 6px;
 }
 .price__currency,
 .price__cents {
@@ -708,6 +726,10 @@
 .field input:focus {
   border-color: var(--ember);
   background: #fffdfa;
+}
+.field input:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
 }
 .field.is-invalid input {
   border-color: var(--ember);
@@ -930,5 +952,64 @@
   }
   .edition {
     padding: 0.36rem 0.8rem;
+  }
+}
+
+/* ══════════ the in-between window ══════════
+   Wide enough for the spiral, too narrow to set it beside the heading: the
+   orbit drops below the copy instead of turning across it. */
+
+@media (min-width: 700px) and (max-width: 999px) {
+  .spiral__stage {
+    top: 38%;
+  }
+  .spiral__head {
+    max-width: 30rem;
+  }
+}
+
+/* ══════════ small phones ══════════ */
+
+@media (max-width: 420px) {
+  /* the wordmark gives way to its glyph; MENU and SOUND need the room */
+  .mark__text {
+    display: none;
+  }
+  .chrome {
+    padding-inline: 0.85rem;
+  }
+  .audio-toggle,
+  .menu-toggle {
+    padding: 0.34rem 0.7rem;
+    letter-spacing: 0.12em;
+    gap: 0.4rem;
+  }
+  .audio-toggle__label {
+    min-width: 4.4em;
+  }
+  /* one line, not two */
+  .btn--primary,
+  .btn--cta {
+    font-size: 1.32rem;
+    padding-inline: 0.85em;
+  }
+  .threshold__actions {
+    gap: 0.6rem;
+  }
+  .loader__label {
+    font-size: 2rem;
+  }
+  .hud b {
+    min-width: 4.4rem;
+  }
+}
+
+@media (max-width: 520px) {
+  /* the play button and its waveform stop fighting for the same row */
+  .sample {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sample__wave {
+    height: 32px;
   }
 }

@@ -13,6 +13,8 @@ export const book = {
   /* ── identity ──────────────────────────────────────────────────────── */
 
   title: "How to Bag a Billionaire's Daughter",
+  /** Optional. Used where a long title will not fit — an installed app icon. */
+  shortName: 'Bag a Billionaire',
   /** The headline, broken the way you want it to break. */
   titleLines: ['How to Bag a', "Billionaire's", 'Daughter'],
   /** Which of those lines is set in Vintage Rosewood (0-indexed). */
@@ -27,6 +29,18 @@ export const book = {
   pages: 247,
   description:
     "One book. One author. Zero clarity. A field manual for the alpha acquirer, sold from inside a physics-based dream library.",
+
+  /**
+   * Where this shop lives. Fills in the canonical link, the sitemap, robots.txt
+   * and llms.txt. Leave `url` empty and the build uses the deployment's own
+   * address; set it once you have a domain.
+   */
+  site: {
+    url: '',
+    /** 'mailto:you@example.com' — set it and /.well-known/security.txt appears. */
+    contact: '',
+    language: 'en',
+  },
 
   /* ── artwork ───────────────────────────────────────────────────────────
      Leave these null and the cover is drawn from the text above: rosewood

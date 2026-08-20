@@ -24,7 +24,7 @@ export function initSpiral() {
     el.className = 'spiral-item';
     el.type = 'button';
     el.setAttribute('role', 'listitem');
-    el.style.setProperty('--w', `${(env.mobile ? 132 : 176) + (i % 3) * 22}px`);
+    el.dataset.step = String(i % 3);
     el.style.setProperty('--tilt', `${(i % 2 ? 1 : -1) * (1.2 + (i % 3) * 0.9)}deg`);
     el.innerHTML = `
       <span class="spiral-item__frame"></span>
@@ -50,6 +50,12 @@ export function initSpiral() {
   const view = { rotation: 0, spread: 0.92, pointerX: 0, pointerY: 0 };
   let rendered = { x: 0, y: 0 };
 
+  /** Plates shrink on narrower windows so the orbit still reads as an orbit. */
+  const plateWidth = (step) => {
+    const base = window.innerWidth < 1000 ? 132 : 176;
+    return base + step * (window.innerWidth < 1000 ? 14 : 22);
+  };
+
   function layout() {
     if (column) return;
     const rect = stage.getBoundingClientRect();
@@ -65,6 +71,7 @@ export function initSpiral() {
       const y = offsetY + Math.sin(a) * r * 0.8 + view.pointerY * 20 * n.depth;
       const scale = clamp(0.58 + n.depth * 0.42, 0.45, 1.1);
       const fade = clamp(1.5 - Math.abs(r) / (unit * 1.4), 0.14, 1);
+      n.el.style.setProperty('--w', `${plateWidth(Number(n.el.dataset.step))}px`);
       n.setter({
         transform: `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%) scale(${scale})`,
         opacity: fade,

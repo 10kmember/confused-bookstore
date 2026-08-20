@@ -343,7 +343,43 @@ For real photographs:
 Drop the file in `public/gallery/`. It is fitted to the sheet, so any aspect
 ratio works.
 
-## 7. The manifesto, the whispers, the quotes
+## 7. Your address, search engines and llms.txt
+
+Set the site's own address once and several files write themselves:
+
+```js
+site: {
+  url: 'https://yourdomain.com',        // no trailing slash
+  contact: 'mailto:you@yourdomain.com', // optional
+  language: 'en',
+},
+```
+
+Leave `url` empty and the build uses the deployment's own address on Vercel, so
+this is only worth setting when you have a domain of your own.
+
+Every build then writes, from the same book data as the page:
+
+| File | What it is |
+|---|---|
+| `/robots.txt` | Lets crawlers in, keeps them out of `/api/`, points at the sitemap |
+| `/sitemap.xml` | The one page, with today's date |
+| `/llms.txt` | A plain-language brief for language models — the book, the editions, the prices, what the page contains. See [llmstxt.org](https://llmstxt.org) |
+| `/site.webmanifest` | Name, colours and icon, so the site can be added to a home screen |
+| `/humans.txt` | Who and what made it |
+| `/.well-known/security.txt` | Only written when `site.contact` is set, with an expiry a year out |
+
+The page's `<head>` gains a canonical link, `og:url`, and — when you have
+supplied `cover.image` — an `og:image` for link previews. All of it is generated
+at build time, so nothing can drift out of step with `book.js`.
+
+Open any of them on the dev server (`npm run dev`, then `/llms.txt`) to see
+exactly what will deploy.
+
+`shortName` in the config is the name used where the full title will not fit —
+an installed app icon, for instance. It falls back to the title.
+
+## 8. The manifesto, the whispers, the quotes
 
 - `stats` — the numbers that count up. `value`, optional `suffix`, `label`, `note`.
 - `pullquote` — the rotated line beside them.
@@ -388,4 +424,5 @@ fallback, which is what `?currency=` is for.
 - [ ] `plates` — rewrite the copy, or swap in photographs
 - [ ] `checkout.mode`, and the files/keys/environment variables that go with it
 - [ ] `stats`, `pullquote`, `whisperSeeds`, `quotes`
+- [ ] `site.url` once you have a domain — it fills in the sitemap, robots and canonical link
 - [ ] `fineprint` — say what is actually true about your checkout

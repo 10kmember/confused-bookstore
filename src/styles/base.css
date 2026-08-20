@@ -94,6 +94,14 @@ input {
   color: inherit;
 }
 
+/* A keyboard user must always be able to see where they are. Zero specificity,
+   so anything with its own focus treatment still wins. */
+:where(a, button, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 ::selection {
   background: rgb(var(--gold-rgb) / 0.45);
   color: var(--ink);
@@ -266,8 +274,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(0.9rem, 2vw, 1.6rem) var(--gutter);
-  mix-blend-mode: normal;
+  /* keep clear of a notch or a rounded corner */
+  padding: max(clamp(0.9rem, 2vw, 1.6rem), env(safe-area-inset-top))
+    max(var(--gutter), env(safe-area-inset-right)) clamp(0.9rem, 2vw, 1.6rem)
+    max(var(--gutter), env(safe-area-inset-left));
   pointer-events: none;
 }
 .chrome > * {
@@ -382,7 +392,8 @@ body[data-mood='night'] .menu-toggle {
   color: var(--cream);
   display: grid;
   align-content: center;
-  padding: 12vh var(--gutter) 6vh;
+  padding: max(12vh, calc(env(safe-area-inset-top) + 8vh)) max(var(--gutter), env(safe-area-inset-left))
+    max(6vh, env(safe-area-inset-bottom));
   clip-path: inset(0 0 100% 0);
   transition: clip-path 900ms var(--ease-soft);
   pointer-events: none;
