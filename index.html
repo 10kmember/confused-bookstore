@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en" data-theme="paper">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>How to Bag a Billionaire's Daughter — The Confused Bookstore</title>
+    <meta
+      name="description"
+      content="One book. One author. Zero clarity. A field manual for the alpha acquirer, sold from inside a physics-based dream library."
+    />
+    <meta name="theme-color" content="#F1ECE6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237D4047'/%3E%3Crect x='9' y='6' width='14' height='20' rx='2' fill='%23F1ECE6'/%3E%3Crect x='9' y='6' width='4' height='20' fill='%23F4B044'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <!-- ══ LOADING: a stack of books falling into place ══ -->
+    <div class="loader" id="loader" aria-hidden="true">
+      <canvas class="loader__canvas" id="loader-canvas"></canvas>
+      <div class="loader__meta">
+        <p class="loader__label">Shelving the inventory</p>
+        <p class="loader__count"><span id="loader-pct">00</span>%</p>
+      </div>
+    </div>
+
+    <!-- ══ CURSOR: a quill that leaks gold ══ -->
+    <canvas class="cursor-canvas" id="cursor-canvas" aria-hidden="true"></canvas>
+
+    <!-- ══ CHROME ══ -->
+    <header class="chrome chrome--top">
+      <a class="mark" href="#threshold" data-goto="threshold">
+        <span class="mark__glyph" aria-hidden="true"></span>
+        <span class="mark__text">The Confused<br />Bookstore</span>
+      </a>
+
+      <div class="chrome__right">
+        <button class="audio-toggle" id="audio-toggle" aria-pressed="false" aria-label="Toggle ambient sound">
+          <span class="audio-toggle__lottie" id="audio-lottie" aria-hidden="true"></span>
+          <span class="audio-toggle__label">Sound</span>
+        </button>
+        <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="menu">
+          <span class="menu-toggle__label">Menu</span>
+          <span class="menu-toggle__bars" aria-hidden="true"><i></i><i></i></span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="menu" id="menu" aria-label="Sections">
+      <ul class="menu__list">
+        <li><button data-goto="threshold"><span>01</span> Enter</button></li>
+        <li><button data-goto="spiral"><span>02</span> Wander</button></li>
+        <li><button data-goto="reading-room"><span>03</span> Stumble</button></li>
+        <li><button data-goto="manifesto"><span>04</span> Recite</button></li>
+        <li><button data-goto="whispers"><span>05</span> Whisper</button></li>
+        <li><button data-goto="portal"><span>06</span> Claim</button></li>
+      </ul>
+      <p class="menu__whisper">You will not find a cart. You will find a book that has opinions.</p>
+    </nav>
+
+    <!-- fixed section index, left edge -->
+    <div class="rail" id="rail" aria-hidden="true"></div>
+
+    <!-- vertical scroll progress, right edge -->
+    <div class="progress" aria-hidden="true"><i class="progress__fill" id="progress-fill"></i></div>
+
+    <main id="smooth-content">
+      <!-- ══════════ 00 — THE THRESHOLD ══════════ -->
+      <section class="sec sec--threshold" id="threshold" data-index="00" data-label="The Threshold" data-mood="paper">
+        <canvas class="layer layer--particles" id="hero-particles" aria-hidden="true"></canvas>
+        <canvas class="layer layer--webgl" id="hero-webgl" aria-hidden="true"></canvas>
+
+        <div class="threshold__copy">
+          <p class="eyebrow">A field manual for the alpha acquirer</p>
+          <h1 class="threshold__title">
+            <span>How to Bag a</span>
+            <span class="tilt-a">Billionaire's</span>
+            <span class="tilt-b">Daughter</span>
+          </h1>
+          <p class="threshold__byline">
+            by <strong>Chadwick P. Worthington III</strong><br />
+            <em>Founder, The Alpha Acquirer Institute</em>
+          </p>
+          <div class="threshold__actions">
+            <button class="btn btn--primary" data-goto="portal" data-sfx="chime">Take this confusion home</button>
+            <button class="btn btn--ghost" data-goto="spiral">Wander first</button>
+          </div>
+          <p class="threshold__hint" id="hero-hint">Drag the book. Throw it. It always comes back.</p>
+        </div>
+
+        <div class="scroll-cue" aria-hidden="true">
+          <span>Descend</span>
+          <i></i>
+        </div>
+      </section>
+
+      <!-- ══════════ 01 — THE SPIRAL GALLERY ══════════ -->
+      <section class="sec sec--spiral" id="spiral" data-index="01" data-label="The Spiral Gallery" data-mood="paper">
+        <div class="spiral__head">
+          <p class="chapter">01</p>
+          <h2 class="display">The Spiral Gallery</h2>
+          <p class="lede">
+            Interior spreads, field photographs, and assorted evidence from a book that refuses to
+            hold still. Scroll to turn the spiral. Click anything to open it like a pop-up.
+          </p>
+        </div>
+        <div class="spiral__stage" id="spiral-stage" role="list"></div>
+      </section>
+
+      <!-- ══════════ 02 — THE PHYSICS READING ROOM ══════════ -->
+      <section class="sec sec--room" id="reading-room" data-index="02" data-label="The Reading Room" data-mood="paper">
+        <div class="room__head">
+          <p class="chapter">02</p>
+          <h2 class="display">The Physics Reading Room</h2>
+          <p class="lede">The desk of a man who has read this book. Click to detonate. Drag to relocate.</p>
+        </div>
+        <div class="room__stage">
+          <canvas id="room-canvas"></canvas>
+          <div class="hud" id="room-hud">
+            <p><b>OBJECTS</b><span id="hud-objects">00</span></p>
+            <p><b>GRAVITY</b><span id="hud-gravity">9.81</span></p>
+            <p><b>CHAOS</b><span id="hud-chaos">DORMANT</span></p>
+            <p><b>ENGINE</b><span id="hud-engine">RAPIER 2D</span></p>
+          </div>
+          <div class="room__tools">
+            <button class="chip" id="room-rain" data-sfx="thud">Make it rain</button>
+            <button class="chip" id="room-gravity" data-sfx="thud">Invert gravity</button>
+            <button class="chip" id="room-reset" data-sfx="thud">Tidy up</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ 03 — THE CONFUSED MANIFESTO ══════════ -->
+      <section class="sec sec--manifesto" id="manifesto" data-index="03" data-label="The Manifesto" data-mood="night">
+        <div class="manifesto__head">
+          <p class="chapter chapter--light">03</p>
+          <h2 class="display">The Confused Manifesto</h2>
+          <p class="lede lede--light">
+            Everything we know about this book, stated with total confidence and no evidence.
+          </p>
+        </div>
+        <ol class="stats" id="stats"></ol>
+        <blockquote class="pullquote">
+          “It is not a store. It is a place where a book lives, and you are merely visiting its dream.”
+        </blockquote>
+      </section>
+
+      <!-- ══════════ 04 — THE WHISPER WALL ══════════ -->
+      <section class="sec sec--whispers" id="whispers" data-index="04" data-label="The Whisper Wall" data-mood="night">
+        <canvas class="layer layer--whispers" id="whisper-canvas" aria-hidden="true"></canvas>
+        <div class="whispers__inner">
+          <p class="chapter chapter--light">04</p>
+          <h2 class="display">The Whisper Wall</h2>
+          <p class="lede lede--light">
+            Sixty characters. Leave them here. They drift upward until the room forgets them.
+          </p>
+          <form class="whisper-form" id="whisper-form" autocomplete="off">
+            <label class="sr-only" for="whisper-input">Your whisper</label>
+            <input
+              id="whisper-input"
+              name="whisper"
+              type="text"
+              maxlength="60"
+              placeholder="Say something to the shelves…"
+            />
+            <span class="whisper-form__count"><span id="whisper-count">60</span></span>
+            <button class="btn btn--gold" type="submit" data-sfx="chime">Release it</button>
+          </form>
+          <p class="whispers__note" id="whisper-note">
+            Whispers live in your browser only. Nothing is sent anywhere.
+          </p>
+        </div>
+      </section>
+
+      <!-- ══════════ 05 — THE PURCHASE PORTAL ══════════ -->
+      <section class="sec sec--portal" id="portal" data-index="05" data-label="The Purchase Portal" data-mood="night">
+        <div class="portal__grid">
+          <div class="portal__book">
+            <canvas id="portal-webgl" aria-hidden="true"></canvas>
+            <p class="portal__caption">247 pages. Hardcover. Regrettably real weight.</p>
+          </div>
+
+          <div class="portal__side">
+            <p class="chapter chapter--light">05</p>
+            <h2 class="display">Claim the Confusion</h2>
+
+            <p class="price" id="price" tabindex="0" aria-describedby="price-quote">
+              <span class="price__currency">$</span><span class="price__value">34</span><span class="price__cents">.00</span>
+            </p>
+            <p class="price__quote" id="price-quote" role="status">Hover the price. It will not discount. It will only quote.</p>
+
+            <form class="checkout" id="checkout" novalidate>
+              <p class="checkout__stamp" aria-hidden="true">Library Card No. 000-247</p>
+              <div class="field">
+                <label for="co-name">Borrower</label>
+                <input id="co-name" name="name" type="text" placeholder="Name as it appears on your ego" />
+              </div>
+              <div class="field">
+                <label for="co-email">Where to send the confusion</label>
+                <input id="co-email" name="email" type="email" placeholder="you@somewhere.tld" />
+              </div>
+              <div class="field field--split">
+                <div>
+                  <label for="co-copies">Copies</label>
+                  <input id="co-copies" name="copies" type="number" min="1" max="13" value="1" />
+                </div>
+                <div>
+                  <label for="co-city">Shelf city</label>
+                  <input id="co-city" name="city" type="text" placeholder="Somewhere with a yacht club" />
+                </div>
+              </div>
+              <button class="btn btn--cta" type="submit" data-sfx="chime">Take this confusion home</button>
+              <p class="checkout__fineprint">
+                Demonstration checkout. No payment details are requested, collected, or processed —
+                this is a design piece, and the book is a work of satire.
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════ THE VOID ══════════ -->
+      <section class="sec sec--void" id="void" data-index="06" data-label="The Void" data-mood="night">
+        <canvas class="layer layer--void" id="void-canvas" aria-hidden="true"></canvas>
+        <div class="void__inner">
+          <p class="void__line">The book drifts off to be misunderstood elsewhere.</p>
+          <button class="btn btn--gold btn--big" data-goto="threshold" data-sfx="chime">Start over?</button>
+          <p class="void__credit">
+            No footer. Footers imply an ending. <br />
+            A design experiment — Three.js · Rapier · GSAP · Web Audio.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ══ POP-UP BOOK MODAL ══ -->
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
+      <div class="modal__backdrop" data-close></div>
+      <div class="modal__book">
+        <div class="modal__page">
+          <figure class="modal__figure"><img id="modal-image" alt="" /></figure>
+          <div class="modal__text">
+            <p class="modal__kicker" id="modal-kicker"></p>
+            <h3 class="display" id="modal-title"></h3>
+            <p id="modal-body"></p>
+          </div>
+          <button class="modal__close" data-close aria-label="Close">×</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="receipt" id="receipt" aria-hidden="true">
+      <div class="receipt__card">
+        <p class="receipt__stamp">Checked&nbsp;Out</p>
+        <p class="receipt__title">How to Bag a Billionaire's Daughter</p>
+        <p class="receipt__line" id="receipt-line"></p>
+        <p class="receipt__due">Due back: never. It was never ours.</p>
+        <button class="btn btn--ghost btn--ghost-light" id="receipt-close">Return to the dream</button>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="noscript">
+        This shelf is empty. Like your understanding. <br />(JavaScript is required for the library to
+        dream.)
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

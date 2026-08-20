@@ -1,0 +1,773 @@
+/* ═══════════════════════════════════════════════════════════
+   THE CONFUSED BOOKSTORE — section layouts
+   ═══════════════════════════════════════════════════════════ */
+
+.sec {
+  position: relative;
+  background: var(--cream);
+  color: var(--ink);
+  padding-block: clamp(5rem, 11vh, 9rem);
+  padding-inline: calc(var(--gutter) + var(--rail-w));
+  min-height: 100svh;
+  isolation: isolate;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+/* ══════════ 00 — THE THRESHOLD ══════════ */
+
+.sec--threshold {
+  display: grid;
+  align-content: center;
+  min-height: 100svh;
+  padding-top: clamp(7rem, 18vh, 12rem);
+  overflow: hidden;
+}
+.layer--webgl {
+  z-index: 0;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+@media (max-width: 900px) {
+  /* the book takes the lower band of the screen rather than sitting under the
+     headline; a real grid row guarantees both halves fit */
+  .sec--threshold {
+    display: grid;
+    grid-template-rows: auto minmax(190px, 1fr);
+    align-content: stretch;
+    padding-bottom: clamp(1.5rem, 4vh, 3rem);
+    padding-top: clamp(5.5rem, 12vh, 8rem);
+  }
+  .threshold__copy {
+    grid-row: 1;
+  }
+  .layer--webgl {
+    position: relative;
+    grid-row: 2;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+  }
+  .sec--threshold .scroll-cue {
+    display: none;
+  }
+}
+.layer--particles {
+  z-index: -1;
+}
+
+.threshold__copy {
+  position: relative;
+  z-index: 2;
+  max-width: min(34rem, 48vw);
+  pointer-events: none;
+}
+.threshold__copy > * {
+  pointer-events: auto;
+}
+
+.threshold__title {
+  font-family: var(--display);
+  font-size: var(--step-hero);
+  line-height: 0.78;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.28em;
+  display: grid;
+  text-wrap: balance;
+}
+.threshold__title span {
+  display: block;
+  transform-origin: left center;
+}
+.threshold__title .tilt-a {
+  color: var(--rose);
+  transform: rotate(-1.8deg);
+  margin-left: 0.06em;
+}
+.threshold__title .tilt-b {
+  transform: rotate(1.4deg);
+  margin-left: 0.14em;
+}
+
+.threshold__byline {
+  margin: 0 0 2rem;
+  max-width: 32ch;
+  font-size: 0.98rem;
+}
+.threshold__byline strong {
+  color: var(--rose);
+}
+.threshold__byline em {
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.threshold__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.threshold__hint {
+  margin: 1.6rem 0 0;
+  font-weight: 300;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.2rem, 4vh, 3rem);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--slate);
+  z-index: 3;
+}
+.scroll-cue i {
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(var(--slate), transparent);
+  animation: cue 2.6s var(--ease-soft) infinite;
+}
+@keyframes cue {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* ══════════ 01 — THE SPIRAL GALLERY ══════════ */
+
+.sec--spiral {
+  min-height: 100svh;
+  overflow: clip;
+}
+.spiral__head {
+  position: relative;
+  z-index: 3;
+  max-width: 34rem;
+  pointer-events: none;
+}
+.spiral__head .lede {
+  margin-top: 0.6rem;
+}
+.spiral__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+@media (min-width: 1000px) {
+  /* the spiral turns in the right half so it never sits on the heading */
+  .spiral__stage {
+    left: 36%;
+  }
+}
+/* phones get a plain column of plates instead of an orbit */
+.spiral__stage--column {
+  position: relative;
+  inset: auto;
+  margin-top: clamp(2rem, 6vh, 3.5rem);
+  display: grid;
+  gap: clamp(2rem, 6vh, 3rem);
+  justify-items: center;
+  pointer-events: auto;
+}
+.spiral__stage--column .spiral-item {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: min(78vw, 320px);
+}
+.spiral__stage--column .spiral-item:nth-child(odd) {
+  justify-self: start;
+}
+.spiral__stage--column .spiral-item:nth-child(even) {
+  justify-self: end;
+}
+.spiral-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--w, 190px);
+  margin: 0;
+  pointer-events: auto;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  will-change: transform;
+}
+.spiral-item__frame {
+  --enter: 0.6;
+  --enter-o: 0;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--greige);
+  border: 1px solid rgb(var(--rose-rgb) / 0.28);
+  box-shadow: 0 26px 50px -32px rgb(var(--night-rgb) / 0.8);
+  transform: rotate(var(--tilt, 0deg)) scale(var(--enter));
+  opacity: var(--enter-o);
+  transition: box-shadow 600ms var(--ease-out), opacity 900ms var(--ease-out) var(--delay, 0ms),
+    transform 900ms var(--ease-out) var(--delay, 0ms);
+}
+.spiral-item.is-in .spiral-item__frame {
+  --enter: 1;
+  --enter-o: 1;
+}
+.spiral-item:hover .spiral-item__frame {
+  box-shadow: 0 40px 70px -34px rgb(var(--night-rgb) / 0.9);
+  transform: rotate(var(--tilt, 0deg)) scale(calc(var(--enter) * 1.03)) translateY(-6px);
+  transition-delay: 0ms;
+}
+.spiral-item__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 0%, transparent 40%, rgb(var(--rose-rgb) / 0.22));
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.spiral-item:hover .spiral-item__frame::after {
+  opacity: 1;
+}
+.spiral-item img,
+.spiral-item canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.spiral-item__cap {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  text-align: left;
+}
+
+/* ══════════ 02 — THE READING ROOM ══════════ */
+
+.sec--room {
+  display: grid;
+  gap: clamp(1.5rem, 4vh, 3rem);
+  align-content: center;
+}
+.room__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  column-gap: clamp(1.5rem, 4vw, 3.5rem);
+  row-gap: 0.4rem;
+}
+.room__head .chapter {
+  grid-row: 1 / span 2;
+  justify-self: start;
+}
+.room__head .lede {
+  max-width: 40ch;
+}
+@media (max-width: 820px) {
+  .room__head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .room__head .chapter {
+    grid-row: auto;
+  }
+}
+.room__stage {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(170deg, color-mix(in srgb, var(--night) 88%, var(--slate)) 0%, var(--night) 100%);
+  box-shadow: 0 50px 90px -50px rgb(var(--night-rgb) / 0.9), inset 0 0 0 1px rgb(var(--gold-rgb) / 0.16);
+  aspect-ratio: 16 / 9;
+  max-height: min(62svh, 620px);
+}
+@media (max-width: 720px) {
+  .room__stage {
+    aspect-ratio: 4 / 5;
+  }
+}
+#room-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.9rem 1.1rem;
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 300;
+  pointer-events: none;
+}
+.hud p {
+  margin: 0;
+  display: flex;
+  gap: 0.6rem;
+}
+.hud b {
+  min-width: 5.4rem;
+  color: color-mix(in srgb, var(--slate) 65%, transparent);
+  font-weight: 700;
+}
+.hud span {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.room__tools {
+  position: absolute;
+  bottom: 0.9rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ══════════ 03 — THE MANIFESTO ══════════ */
+
+.sec--manifesto {
+  background: var(--night);
+  color: var(--cream);
+  display: grid;
+  align-content: center;
+  gap: clamp(2rem, 6vh, 4rem);
+  position: relative;
+}
+.sec--manifesto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 40%, transparent 30%, rgb(0 0 0 / 0.65) 100%);
+  z-index: -1;
+}
+.manifesto__head {
+  max-width: 42rem;
+}
+.stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(0.6rem, 2vh, 1.4rem);
+  counter-reset: stat;
+}
+.stat {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 0.42fr) minmax(0, 1.58fr);
+  gap: clamp(1rem, 4vw, 3rem);
+  align-items: start;
+  padding: clamp(0.9rem, 2vh, 1.6rem) 0;
+  border-top: 1px solid rgb(var(--gold-rgb) / 0.22);
+}
+@media (max-width: 820px) {
+  .stat {
+    grid-template-columns: 2.6rem minmax(0, 1fr);
+    gap: 0.4rem 1rem;
+  }
+  .stat__value,
+  .stat__body {
+    grid-column: 2;
+  }
+}
+.stat__num {
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  font-weight: 700;
+  color: var(--slate);
+}
+.stat__body {
+  display: grid;
+  gap: 0.35rem;
+  align-self: center;
+}
+.stat__value {
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 7vw, 5.4rem);
+  line-height: 0.9;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+  text-align: right;
+}
+@media (max-width: 820px) {
+  .stat__value {
+    text-align: left;
+  }
+}
+.stat__label {
+  font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.2rem);
+  color: var(--cream);
+  font-weight: 600;
+}
+.stat__note {
+  font-size: 0.82rem;
+  font-weight: 300;
+  color: var(--slate);
+  font-style: italic;
+  max-width: 44ch;
+}
+.pullquote {
+  margin: 0;
+  max-width: 30ch;
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 0.95;
+  color: var(--cream);
+  justify-self: end;
+  text-align: right;
+  transform: rotate(-1.5deg);
+  border-right: 3px solid var(--rose);
+  padding-right: 1rem;
+}
+
+/* ══════════ 04 — THE WHISPER WALL ══════════ */
+
+.sec--whispers {
+  background: var(--night);
+  color: var(--cream);
+  min-height: 108svh;
+  display: grid;
+  align-content: center;
+  overflow: hidden;
+}
+.layer--whispers {
+  z-index: 0;
+  pointer-events: none;
+}
+.whispers__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 40rem;
+}
+.whisper-form {
+  margin-top: 2rem;
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+.whisper-form input {
+  flex: 1 1 18rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgb(var(--gold-rgb) / 0.4);
+  padding: 0.6rem 2.6rem 0.6rem 0;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 300ms ease;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+.whisper-form input::placeholder {
+  color: color-mix(in srgb, var(--slate) 70%, transparent);
+}
+.whisper-form input:focus {
+  border-color: var(--gold);
+}
+.whisper-form__count {
+  position: absolute;
+  left: 0;
+  bottom: -1.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--slate) 65%, transparent);
+  pointer-events: none;
+  transition: color 300ms ease;
+}
+.whisper-form__count::after {
+  content: ' LEFT';
+}
+.whisper-form__count.is-low {
+  color: var(--ember);
+}
+.whispers__note {
+  margin: 2.4rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--slate) 80%, transparent);
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.whispers__note .flag {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+}
+.is-shaking {
+  animation: shake 500ms var(--ease-out);
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-7px); }
+  32% { transform: translateX(6px); }
+  50% { transform: translateX(-4px); }
+  70% { transform: translateX(3px); }
+  86% { transform: translateX(-1px); }
+}
+
+/* ══════════ 05 — THE PURCHASE PORTAL ══════════ */
+
+.sec--portal {
+  background: var(--night);
+  color: var(--cream);
+  display: grid;
+  align-content: center;
+}
+.portal__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .portal__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .portal__book,
+  #portal-webgl {
+    min-height: 46svh;
+  }
+  /* phones skip the post-processing pass, so the keyhole vignette that gives
+     the book its depth is painted in CSS instead */
+  .portal__book::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(70% 52% at 50% 44%, transparent 45%, rgb(var(--night-rgb) / 0.6) 100%);
+  }
+  .sec--portal .portal__caption {
+    position: relative;
+    z-index: 2;
+    bottom: auto;
+    margin-top: 0.6rem;
+  }
+}
+.portal__book {
+  position: relative;
+  min-height: min(62svh, 560px);
+}
+#portal-webgl {
+  width: 100%;
+  height: 100%;
+  min-height: min(62svh, 560px);
+  display: block;
+  touch-action: pan-y;
+}
+.portal__caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-weight: 300;
+}
+.price {
+  font-family: var(--display);
+  color: var(--gold);
+  font-size: clamp(4.4rem, 12vw, 8.6rem);
+  line-height: 0.75;
+  margin: 0.2em 0 0;
+  display: inline-flex;
+  align-items: flex-start;
+  cursor: help;
+  outline: none;
+}
+.price__currency {
+  font-size: 0.42em;
+  margin-top: 0.24em;
+}
+.price__cents {
+  font-size: 0.36em;
+  margin-top: 0.3em;
+}
+.price__quote {
+  min-height: 3.4em;
+  margin: 0.8rem 0 1.6rem;
+  max-width: 34ch;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--slate);
+  font-size: 0.92rem;
+}
+.checkout {
+  background: var(--greige);
+  color: var(--ink);
+  border-radius: 4px;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  display: grid;
+  gap: 0.9rem;
+  box-shadow: 0 40px 80px -50px rgb(0 0 0 / 0.9);
+  border-top: 22px solid var(--rose);
+  position: relative;
+}
+.checkout::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px dashed rgb(var(--rose-rgb) / 0.35);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.checkout__stamp {
+  margin: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--rose);
+  font-weight: 700;
+}
+.field {
+  display: grid;
+  gap: 0.2rem;
+}
+.field--split {
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: end;
+}
+.field label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+.field input {
+  background: var(--cream);
+  border: 0;
+  border-bottom: 1px solid rgb(var(--rose-rgb) / 0.55);
+  padding: 0.5rem 0.6rem;
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  outline: none;
+  border-radius: 2px 2px 0 0;
+  transition: border-color 260ms ease, background-color 260ms ease;
+  width: 100%;
+}
+.field input::placeholder {
+  color: var(--slate);
+  font-family: var(--body);
+  font-size: 0.85rem;
+  letter-spacing: 0;
+}
+.field input:focus {
+  border-color: var(--ember);
+  background: #fffdfa;
+}
+.field.is-invalid input {
+  border-color: var(--ember);
+  background: rgb(var(--ember-rgb) / 0.07);
+}
+.checkout__fineprint {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+  font-weight: 300;
+}
+
+/* ══════════ THE VOID ══════════ */
+
+.sec--void {
+  background: var(--night);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 100svh;
+  overflow: hidden;
+}
+.layer--void {
+  z-index: 0;
+}
+.void__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 1.2rem;
+  justify-items: center;
+}
+.void__line {
+  margin: 0;
+  color: var(--slate);
+  font-style: italic;
+  font-weight: 300;
+  max-width: 26ch;
+}
+.void__credit {
+  margin: 1.4rem 0 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--slate) 62%, transparent);
+  font-weight: 300;
+  line-height: 2;
+}
+
+/* ══════════ responsive trims ══════════ */
+
+@media (max-width: 900px) {
+  .sec {
+    padding-left: calc(var(--gutter) + 0.5rem);
+    padding-right: calc(var(--gutter) + 0.5rem);
+  }
+  .rail {
+    display: none;
+  }
+  .threshold__copy {
+    max-width: none;
+  }
+  .pullquote {
+    justify-self: start;
+    text-align: left;
+    border-right: 0;
+    border-left: 3px solid var(--rose);
+    padding: 0 0 0 1rem;
+  }
+  .modal__page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
