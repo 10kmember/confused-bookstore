@@ -27,9 +27,6 @@ const toTexture = (canvas, { srgb = true, repeat = null } = {}) => {
   return tex;
 };
 
-/** 'INSTITUTE' → 'I N S T I T U T E' */
-const spaced = (text) => [...text].join(' ');
-
 /**
  * Draw text that must not run off the boards: if it is too wide for the space,
  * the point size steps down until it fits. Callers set the font first.
@@ -129,32 +126,33 @@ export function bookCoverTextures({ size = 768 } = {}) {
   const titleSize = Math.min(w * 0.155, lineStep * 1.35);
   const titleTop = h * 0.5 - ((lines.length - 1) * lineStep) / 2;
 
+  // Nothing is stamped wider than the inner rule — cross it and the type reads
+  // as a mistake rather than as foil.
+  const column = w - m * 2.56 - w * 0.04;
+
   foil((c, color) => {
     c.fillStyle = color;
     c.textAlign = 'center';
 
-    c.font = `700 ${w * 0.052}px Nunito, sans-serif`;
-    stamp(c, spaced(book.imprint.toUpperCase()), w / 2, h * 0.19, w * 0.82);
-
     lines.forEach((line, i) => {
       c.font = `700 ${titleSize}px 'Amatic SC', cursive`;
-      stamp(c, line, w / 2, titleTop + i * lineStep, w * 0.76);
+      stamp(c, line, w / 2, titleTop + i * lineStep, column);
     });
 
     c.font = `400 ${w * 0.042}px Nunito, sans-serif`;
-    stamp(c, book.subtitle.toUpperCase(), w / 2, h * 0.795, w * 0.8);
+    stamp(c, book.subtitle.toUpperCase(), w / 2, h * 0.795, column);
 
     c.font = `700 ${w * 0.05}px Nunito, sans-serif`;
-    stamp(c, book.author.toUpperCase(), w / 2, h * 0.86, w * 0.8);
+    stamp(c, book.author.toUpperCase(), w / 2, h * 0.86, column);
 
     // a small, extremely serious crest
     c.beginPath();
-    c.arc(w / 2, h * 0.29, w * 0.045, 0, Math.PI * 2);
+    c.arc(w / 2, h * 0.245, w * 0.045, 0, Math.PI * 2);
     c.lineWidth = w * 0.006;
     c.strokeStyle = color;
     c.stroke();
     c.font = `700 ${w * 0.05}px 'Amatic SC', cursive`;
-    c.fillText(book.monogram, w / 2, h * 0.305);
+    stamp(c, book.monogram, w / 2, h * 0.26, w * 0.07);
   });
 
   return {

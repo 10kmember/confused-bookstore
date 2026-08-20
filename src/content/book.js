@@ -20,8 +20,9 @@ export const book = {
   subtitle: 'A Field Manual for the Alpha Acquirer',
   author: 'Chadwick P. Worthington III',
   authorRole: 'Founder, The Alpha Acquirer Institute',
+  /** Publisher. Appears on the gallery crest and in the page's book data. */
   imprint: 'The Alpha Acquirer Institute',
-  /** Two or three characters, stamped on the crest and the cover. */
+  /** Two or three characters, stamped on the cover and the gallery crest. */
   monogram: 'III',
   pages: 247,
   description:
