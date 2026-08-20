@@ -230,11 +230,12 @@ a {
 }
 
 .btn--ghost {
-  --btn-bd: var(--rose);
+  --btn-bd: color-mix(in srgb, var(--rose) 55%, transparent);
   --btn-fg: var(--rose);
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.13em;
+  padding: 0.6em 1.3em;
 }
 .btn--ghost:hover {
   --btn-bg: rgb(var(--rose-rgb) / 0.08);
@@ -309,14 +310,14 @@ a {
   align-items: center;
   gap: 0.55rem;
   background: rgb(var(--cream-rgb) / 0.55);
-  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
   backdrop-filter: blur(8px);
   border-radius: 999px;
-  padding: 0.42rem 0.95rem;
+  padding: 0.36rem 0.85rem;
   cursor: pointer;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   font-weight: 700;
   transition: background-color 400ms ease, border-color 400ms ease, transform 400ms var(--ease-out);
 }
@@ -329,9 +330,16 @@ body[data-mood='night'] .menu-toggle {
   transform: translateY(-1px);
   border-color: var(--gold);
 }
+.audio-toggle__label {
+  display: inline-block;
+  /* wide enough for the longest state, so switching the sound on cannot
+     resize the pill */
+  min-width: 4.9em;
+  text-align: left;
+}
 .audio-toggle__lottie {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: block;
   opacity: 0.45;
   transition: opacity 300ms ease;

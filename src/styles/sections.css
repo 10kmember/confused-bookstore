@@ -604,23 +604,35 @@
   font-weight: 300;
 }
 .price {
-  font-family: var(--display);
+  /* "Large and unapologetic" — which the hand-lettered face is not at this
+     size: its hairline figures read as faint rather than confident. */
+  font-family: var(--body);
+  font-weight: 800;
+  letter-spacing: -0.035em;
   color: var(--gold);
-  font-size: clamp(4.4rem, 12vw, 8.6rem);
-  line-height: 0.75;
-  margin: 0.2em 0 0;
+  font-size: clamp(3.6rem, 9vw, 6.4rem);
+  line-height: 0.9;
+  margin: 0.24em 0 0;
   display: inline-flex;
   align-items: flex-start;
   cursor: help;
   outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.price__currency,
+.price__cents {
+  font-weight: 800;
+  letter-spacing: 0;
 }
 .price__currency {
   font-size: 0.42em;
-  margin-top: 0.24em;
+  margin-top: 0.22em;
+  margin-right: 0.04em;
 }
 .price__cents {
-  font-size: 0.36em;
-  margin-top: 0.3em;
+  font-size: 0.32em;
+  margin-top: 0.26em;
+  margin-left: 0.06em;
 }
 .price__quote {
   min-height: 3.4em;
@@ -789,12 +801,13 @@
 .edition {
   position: relative;
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.55rem;
-  padding: 0.42rem 1rem;
-  border: 1px solid rgb(var(--gold-rgb) / 0.32);
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.9rem;
+  border: 1px solid rgb(var(--gold-rgb) / 0.22);
   border-radius: 999px;
   cursor: pointer;
+  white-space: nowrap;
   transition: border-color 300ms ease, background-color 300ms ease, transform 300ms var(--ease-out);
 }
 .edition:hover {
@@ -808,20 +821,23 @@
   height: 0;
 }
 .edition__label {
-  font-size: 0.68rem;
-  letter-spacing: 0.2em;
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   font-weight: 700;
 }
 .edition__price {
-  font-family: var(--display);
-  font-size: 1.2rem;
+  /* Nunito, not the display face: Amatic's currency symbols and figures are
+     hairline-thin, and at chip size a price has to be readable first. */
+  font-size: 0.86rem;
+  font-weight: 800;
   line-height: 1;
   color: var(--gold);
+  font-variant-numeric: tabular-nums;
 }
 .edition:has(input:checked) {
-  background: rgb(var(--gold-rgb) / 0.14);
-  border-color: var(--gold);
+  background: rgb(var(--gold-rgb) / 0.12);
+  border-color: rgb(var(--gold-rgb) / 0.75);
 }
 .edition:has(input:focus-visible) {
   outline: 2px solid var(--gold);

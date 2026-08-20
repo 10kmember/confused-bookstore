@@ -46,6 +46,27 @@ export const book = {
      middleware.js). Put a real payment link in `links` and the button stops
      being a demonstration — see CONTENT.md.                                */
 
+  /**
+   * How the button behaves:
+   *   'demo'   — validates and stamps a library card. Takes no money.
+   *   'links'  — sends the buyer to the payment link in `links` below.
+   *   'stripe' — uses this site's own /api/checkout, and emails the files
+   *              after payment. See "Delivering the files" in CONTENT.md.
+   */
+  checkout: { mode: 'demo' },
+
+  /**
+   * Names for the files emailed after a purchase. The keys are yours; they are
+   * matched to private URLs in the BOOK_FILES environment variable, so no book
+   * file is ever stored in this repository.
+   */
+  fileLabels: {
+    'ebook-vol-1': 'Volume I — EPUB & PDF',
+    'ebook-vol-2': 'Volume II — EPUB & PDF',
+    'audiobook-vol-1': 'Volume I — Audiobook (M4B)',
+    'audiobook-vol-2': 'Volume II — Audiobook (M4B)',
+  },
+
   defaultEdition: 'hardcover',
 
   editions: [
@@ -55,14 +76,17 @@ export const book = {
       price: 34,
       tagline: '247 pages. Hardcover. Regrettably real weight.',
       detail: 'Cloth boards, gold foil, and one (1) author photograph taken by his mother.',
+      /** Nothing to email — this one arrives in a van. */
+      files: [],
       links: { USD: '', GBP: '', EUR: '' },
     },
     {
       id: 'ebook',
       label: 'eBook',
       price: 18,
-      tagline: 'Instant, weightless, equally confusing.',
+      tagline: 'Instant, weightless, equally confusing. Both volumes.',
       detail: 'EPUB and PDF. Chapter nine still appears twice; this is not a formatting error.',
+      files: ['ebook-vol-1', 'ebook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },
     {
@@ -77,14 +101,16 @@ export const book = {
         duration: '8h 12m',
         narrator: 'Read by the author',
       },
+      files: ['audiobook-vol-1', 'audiobook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },
     {
       id: 'bundle',
       label: 'All three',
       price: 58,
-      tagline: 'The object, the file and the voice.',
+      tagline: 'The object, the file and the voice. Both volumes of each.',
       detail: 'Three times the confusion, once the postage.',
+      files: ['ebook-vol-1', 'ebook-vol-2', 'audiobook-vol-1', 'audiobook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },
   ],
@@ -111,10 +137,12 @@ export const book = {
     {
       id: 'author',
       kind: 'portrait',
+      /** A real photograph, fitted to the plate. Remove it for the drawn one. */
+      photo: '/gallery/author-portrait.jpg',
       kicker: 'The author',
       title: 'A Man, Photographed Generously',
       caption: 'Photographed by his mother, who wishes to remain anonymous.',
-      body: 'The only known portrait of Chadwick P. Worthington III, shot against a Dark Blue drape he describes in the acknowledgements as “the sky, essentially”.',
+      body: 'The only known portrait of Chadwick P. Worthington III, wading through what the acknowledgements call “the paperwork” with a torch he did not bring for the paperwork.',
     },
     {
       id: 'napkin',

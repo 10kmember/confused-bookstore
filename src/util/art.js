@@ -60,6 +60,36 @@ function sheet() {
   return { c, ctx };
 }
 
+/**
+ * Draw an image to fill `box` without distorting it, clipped to the box, and
+ * tell the caller once it is on the canvas so anything cached can be redone.
+ */
+function fitInto(ctx, src, box, onRepaint) {
+  const img = new Image();
+  img.onload = () => {
+    const scale = Math.max(box.w / img.width, box.h / img.height);
+    const w = img.width * scale;
+    const h = img.height * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(box.x, box.y, box.w, box.h);
+    ctx.clip();
+    ctx.drawImage(img, box.x + (box.w - w) / 2, box.y + (box.h - h) / 2, w, h);
+    ctx.restore();
+    onRepaint?.();
+  };
+  img.onerror = () => {
+    ctx.save();
+    ctx.fillStyle = rgba(P.ember, 0.9);
+    ctx.font = '700 15px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Image not found: ${src}`, box.x + box.w / 2, box.y + box.h / 2);
+    ctx.restore();
+    onRepaint?.();
+  };
+  img.src = src;
+}
+
 /** Ragged blocks of grey "text" — legible as prose, unreadable as words. */
 function textBlock(ctx, x, y, w, lines, { size = 7, gap = 13, color = P.ink, alpha = 0.5 } = {}) {
   for (let i = 0; i < lines; i++) {
@@ -145,37 +175,44 @@ function interiorSpread(plate) {
   return c;
 }
 
-function portraitPlate(plate) {
+const PORTRAIT = { x: 46, y: 60, w: W - 92, h: 520 };
+
+function portraitPlate(plate, onRepaint) {
   const { c, ctx } = sheet();
   ctx.fillStyle = P.night;
-  ctx.fillRect(46, 60, W - 92, 520);
+  ctx.fillRect(PORTRAIT.x, PORTRAIT.y, PORTRAIT.w, PORTRAIT.h);
 
-  // a man-shaped absence
-  const g = ctx.createRadialGradient(W / 2, 300, 20, W / 2, 300, 300);
-  g.addColorStop(0, rgba(P.slate, 0.5));
-  g.addColorStop(1, rgba(P.night, 0));
-  ctx.fillStyle = g;
-  ctx.fillRect(46, 60, W - 92, 520);
+  if (plate.photo) {
+    // A real photograph, fitted to fill the plate without distortion.
+    fitInto(ctx, plate.photo, PORTRAIT, onRepaint);
+  } else {
+    // a man-shaped absence
+    const g = ctx.createRadialGradient(W / 2, 300, 20, W / 2, 300, 300);
+    g.addColorStop(0, rgba(P.slate, 0.5));
+    g.addColorStop(1, rgba(P.night, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(PORTRAIT.x, PORTRAIT.y, PORTRAIT.w, PORTRAIT.h);
 
-  ctx.fillStyle = rgba(P.night, 0.92);
-  ctx.beginPath();
-  ctx.arc(W / 2, 280, 84, 0, TAU);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 150, 580);
-  ctx.quadraticCurveTo(W / 2, 350, W / 2 + 150, 580);
-  ctx.fill();
+    ctx.fillStyle = rgba(P.night, 0.92);
+    ctx.beginPath();
+    ctx.arc(W / 2, 280, 84, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 150, 580);
+    ctx.quadraticCurveTo(W / 2, 350, W / 2 + 150, 580);
+    ctx.fill();
 
-  // collar + pocket square, because of course
-  ctx.strokeStyle = rgba(P.cream, 0.7);
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 44, 400);
-  ctx.lineTo(W / 2, 452);
-  ctx.lineTo(W / 2 + 44, 400);
-  ctx.stroke();
-  ctx.fillStyle = P.ember;
-  ctx.fillRect(W / 2 + 74, 470, 28, 12);
+    // collar + pocket square, because of course
+    ctx.strokeStyle = rgba(P.cream, 0.7);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 44, 400);
+    ctx.lineTo(W / 2, 452);
+    ctx.lineTo(W / 2 + 44, 400);
+    ctx.stroke();
+    ctx.fillStyle = P.ember;
+    ctx.fillRect(W / 2 + 74, 470, 28, 12);
+  }
 
   heading(ctx, book.author, W / 2, 646, { size: 52, align: 'center' });
   label(ctx, book.authorRole.toUpperCase().replace(/, /g, ' · '), W / 2, 682, { align: 'center', size: 10 });
@@ -372,33 +409,10 @@ const RENDERERS = {
 };
 
 /** A plate that is just a supplied image, mounted on the same aged paper. */
-function imagePlate(plate) {
+function imagePlate(plate, onRepaint) {
   const { c, ctx } = sheet();
-  const img = new Image();
-  img.onload = () => {
-    // cover-fit inside a margin, so any aspect ratio sits happily on the sheet
-    const pad = 34;
-    const boxW = W - pad * 2;
-    const boxH = H - pad * 2;
-    const scale = Math.max(boxW / img.width, boxH / img.height);
-    const w = img.width * scale;
-    const h = img.height * scale;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(pad, pad, boxW, boxH);
-    ctx.clip();
-    ctx.drawImage(img, pad + (boxW - w) / 2, pad + (boxH - h) / 2, w, h);
-    ctx.restore();
-    c.dispatchEvent?.(new Event('plate:loaded'));
-  };
-  img.onerror = () => {
-    label(ctx, 'IMAGE NOT FOUND', 46, 96, { color: P.ember });
-    heading(ctx, plate.title || 'Missing plate', 46, 160, { size: 46 });
-    ctx.font = '300 15px Nunito, sans-serif';
-    ctx.fillStyle = rgba(P.ink, 0.6);
-    ctx.fillText(plate.image, 46, 200);
-  };
-  img.src = plate.image;
+  const pad = 34;
+  fitInto(ctx, plate.image, { x: pad, y: pad, w: W - pad * 2, h: H - pad * 2 }, onRepaint);
   return c;
 }
 
@@ -410,12 +424,24 @@ function imagePlate(plate) {
 export function buildGallery() {
   return book.plates.map((plate) => {
     const render = plate.kind === 'image' ? imagePlate : RENDERERS[plate.kind] || interiorSpread;
-    return { ...plate, canvas: render(plate) };
+    const record = { ...plate };
+    // Photographs arrive after the plate is drawn, so any encoded copy taken
+    // in the meantime has to be thrown away.
+    record.canvas = render(plate, () => {
+      record.src = null;
+    });
+    return record;
   });
 }
 
 /** Encode a plate once, the first time something needs an <img> source. */
 export function dataURL(item) {
-  if (!item.src) item.src = item.canvas.toDataURL('image/webp', 0.86);
+  if (item.src) return item.src;
+  try {
+    item.src = item.canvas.toDataURL('image/webp', 0.86);
+  } catch {
+    // A cross-origin image taints the canvas; show the file itself instead.
+    item.src = item.photo || item.image || '';
+  }
   return item.src;
 }

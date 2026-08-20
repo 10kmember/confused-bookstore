@@ -90,7 +90,18 @@ async function boot() {
   // Everything below the fold waits until it is nearly in view. The purchase
   // portal builds a second WebGL stage; Rapier's WebAssembly weighs a couple of
   // megabytes. Neither belongs in the first five seconds of a visit.
-  whenNear('#portal', () => addRunner(initPortal()));
+  //
+  // The exception is a buyer coming back from the payment provider: they land
+  // at the top of the page and are owed their receipt, so the portal is built
+  // straight away.
+  const returning = new URLSearchParams(location.search).has('purchase');
+  let portal = null;
+  if (returning) {
+    portal = initPortal();
+    addRunner(portal);
+  } else {
+    whenNear('#portal', () => addRunner(initPortal()));
+  }
   whenNear('.room__stage', async () => {
     try {
       const { initReadingRoom } = await import('./sections/readingRoom.js');
@@ -112,6 +123,9 @@ async function boot() {
   ScrollTrigger.refresh();
   loader.set(1);
   await loader.done();
+
+  // Now that the veil has lifted, tell a returning buyer how it went.
+  portal?.greetReturningBuyer?.();
 
   // A quiet invitation, once, for anyone who has not found the sound toggle.
   if (!env.mobile) {

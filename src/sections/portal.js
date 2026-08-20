@@ -3,6 +3,7 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 import { createStage } from '../three/stage.js';
 import { BookController, createBook, createHalo } from '../three/book.js';
 import { audio } from '../core/audio.js';
+import { smoothScroll } from '../core/smoothScroll.js';
 import { book, edition } from '../content/book.js';
 import { CURRENCIES, currency, format, parts } from '../core/currency.js';
 import { P, rgba } from '../core/palette.js';
@@ -64,6 +65,14 @@ export function initPortal() {
   /** The payment link for this edition in this visitor's currency, if any. */
   const paymentLink = (item) => item.links?.[currency()]?.trim() || '';
 
+  /** 'stripe' when this site handles payment itself, 'links' for a hosted
+      payment page, 'demo' when it takes no money at all. */
+  const mode = () => {
+    const declared = book.checkout?.mode || 'demo';
+    if (declared === 'links') return paymentLink(current) ? 'links' : 'demo';
+    return declared;
+  };
+
   function select(id) {
     current = edition(id);
     const price = parts(current.price);
@@ -75,10 +84,15 @@ export function initPortal() {
     detailEl.textContent = current.detail || '';
     captionEl.textContent = current.tagline || '';
 
-    const link = paymentLink(current);
-    fineprintEl.textContent = link
-      ? `Checkout is handled by the payment provider, in ${CURRENCIES[currency()].label}. You will be handed over when you are ready.`
-      : book.fineprint;
+    const delivered = current.files?.length;
+    fineprintEl.textContent =
+      {
+        stripe: delivered
+          ? `Paid in ${CURRENCIES[currency()].label} through Stripe. ${delivered === 1 ? 'The file lands' : 'The files land'} in your inbox the moment the payment clears.`
+          : `Paid in ${CURRENCIES[currency()].label} through Stripe. We will email you to arrange delivery.`,
+        links: `Checkout is handled by the payment provider, in ${CURRENCIES[currency()].label}. You will be handed over when you are ready.`,
+        demo: book.fineprint,
+      }[mode()] || book.fineprint;
 
     sample.attach(current);
     updateTotal();
@@ -156,15 +170,19 @@ export function initPortal() {
 
     audio.chime();
 
-    // With a payment link configured, this is a real shop and the visitor goes
-    // to the provider. Without one, it stays the demonstration it claims to be.
-    const link = paymentLink(current);
-    if (link) {
-      const url = new URL(link);
+    // Three ways this can end: our own Stripe session, someone else's hosted
+    // checkout, or the honest demonstration.
+    if (mode() === 'links') {
+      const url = new URL(paymentLink(current));
       url.searchParams.set('quantity', String(count()));
       if (email.value.trim()) url.searchParams.set('prefilled_email', email.value.trim());
       sample.stop();
       window.location.assign(url.toString());
+      return;
+    }
+
+    if (mode() === 'stripe') {
+      startStripeCheckout({ email: email.value.trim(), quantity: count() });
       return;
     }
 
@@ -181,6 +199,67 @@ export function initPortal() {
     controller.angVel.y += 9;
   });
 
+  /** Ask our own function for a Checkout session, then go there. */
+  async function startStripeCheckout({ email, quantity }) {
+    const button = cta;
+    button.disabled = true;
+    button.textContent = 'One moment…';
+    try {
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ editionId: current.id, quantity, email, currency: currency() }),
+      });
+      const body = await response.text();
+      let data = {};
+      try {
+        data = JSON.parse(body);
+      } catch {
+        // A missing or misconfigured function answers with HTML, not JSON.
+        throw new Error(
+          response.status === 404
+            ? 'the checkout service is not deployed'
+            : `the checkout service answered with ${response.status}`
+        );
+      }
+      if (!response.ok || !data.url) throw new Error(data.error || 'checkout could not be started');
+      sample.stop();
+      window.location.assign(data.url);
+    } catch (error) {
+      console.error(error);
+      button.disabled = false;
+      button.textContent = ctaLabel;
+      fineprintEl.textContent = `Checkout is not available right now — ${error.message}. Nothing has been charged.`;
+      audio.thud(0.5);
+    }
+  }
+
+  /**
+   * Stripe sends the buyer back here when it is done with them. Called by the
+   * boot sequence rather than on init, so the receipt does not open behind the
+   * loading screen.
+   */
+  function greetReturningBuyer() {
+    const status = new URLSearchParams(location.search).get('purchase');
+    if (!status) return;
+    history.replaceState(null, '', location.pathname);
+
+    if (status === 'success') {
+      receiptLine.textContent = 'Paid. Check your email — your download links are on their way.';
+      receipt.classList.add('is-open');
+      receipt.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('is-locked');
+      gsap.fromTo(
+        receipt.querySelector('.receipt__stamp'),
+        { scale: 2.4, opacity: 0, rotate: -24 },
+        { scale: 1, opacity: 0.85, rotate: -6, duration: 0.7, ease: 'back.out(2)' }
+      );
+      smoothScroll.toElement(document.getElementById('portal'), -1);
+    } else if (status === 'cancelled') {
+      fineprintEl.textContent = 'Nothing was charged. The book is still here when you want it.';
+    }
+  }
+
   const closeReceipt = () => {
     receipt.classList.remove('is-open');
     receipt.setAttribute('aria-hidden', 'true');
@@ -195,6 +274,7 @@ export function initPortal() {
 
   let last = performance.now();
   return {
+    greetReturningBuyer,
     frame(now) {
       const dt = (now - last) / 1000;
       last = now;

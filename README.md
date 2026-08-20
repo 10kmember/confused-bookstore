@@ -54,11 +54,14 @@ changes — `£34` in the UK, `€34` in the eurozone, `$34` everywhere else.
 leaves a `currency` cookie; off Vercel the browser's locale is used instead.
 Append `?currency=GBP` to any URL to force one.
 
-**Real payments.** Give an edition a payment link per currency and the checkout
-stops being a demonstration and hands the visitor to the provider, quantity and
-email attached. Without links it stays the honest demo it claims to be, and the
-fine print says so either way. The book file itself belongs with the payment
-provider, not in `public/` — see CONTENT.md.
+**Real payments and delivery.** The button has three modes. `demo` takes
+nothing. `links` hands the buyer to a checkout you already run. `stripe` sells
+the book from here: four small functions in `api/` create the Stripe session,
+verify the webhook, and email the buyer a signed, expiring download link for
+every file in that edition — both volumes, both formats, whatever the edition
+declares. The files themselves live in private storage named by environment
+variable, never in this repository. `/api/setup-check` reports which pieces are
+configured. See [CONTENT.md](CONTENT.md) for the full walkthrough.
 
 ---
 
@@ -93,6 +96,7 @@ all generated on a 2D canvas at runtime.
 index.html               markup for all six sections and the chrome
 middleware.js            Vercel Edge Middleware: region → currency cookie
 vercel.json              build settings and cache headers
+api/                     checkout, Stripe webhook, signed downloads, setup check
 src/
   content/book.js        THE BOOK — the only file you edit to sell another one
   main.js                boot sequence, the single rAF loop, lazy section init

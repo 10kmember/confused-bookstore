@@ -91,7 +91,9 @@ export function initChrome() {
   toggle.addEventListener('click', async () => {
     const on = await audio.toggle();
     toggle.setAttribute('aria-pressed', String(!!on));
-    toggle.querySelector('.audio-toggle__label').textContent = on ? 'Sound on' : 'Sound';
+    // 'On' rather than 'Sound on': the label has a fixed width, so the pill
+    // must not grow when the state changes.
+    toggle.querySelector('.audio-toggle__label').textContent = on ? 'On' : 'Sound';
     if (icon) on ? icon.play() : icon.stop();
   });
 

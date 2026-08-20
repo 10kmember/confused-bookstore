@@ -130,39 +130,158 @@ are meant to match.
 > buyers notice. Give each currency its own payment link (below) so the symbol
 > on the page is the currency actually charged.
 
-## 5. Taking real payments
+## 5. Taking money and delivering the files
 
-Out of the box the checkout is a demonstration: it validates, stamps a library
-card and takes no payment details. To make it real, put a payment link in the
-edition's `links`:
+This is the part people get stuck on, so here it is in full. The button has
+three modes, set in `src/content/book.js`:
 
 ```js
-links: {
-  USD: 'https://buy.stripe.com/xxxxxxxxxxxx',
-  GBP: 'https://buy.stripe.com/yyyyyyyyyyyy',
-  EUR: 'https://buy.stripe.com/zzzzzzzzzzzz',
-},
+checkout: { mode: 'demo' },   // 'demo' | 'links' | 'stripe'
 ```
 
-Any provider that gives you a hosted checkout URL works — Stripe Payment Links,
-Lemon Squeezy, Paddle, Gumroad, Shopify. When a link exists for the selected
-edition and the visitor's currency, the form validates and then hands them to
-the provider with the quantity and email attached. When it does not, the
-demonstration receipt appears instead. The fine print under the button changes
-to match, so the page never claims to take money it cannot take.
+| Mode | What the button does | What you have to set up |
+|---|---|---|
+| `demo` | Validates, stamps a library card, takes nothing. The default. | Nothing |
+| `links` | Sends the buyer to a checkout page you already have | One payment link per currency |
+| `stripe` | This site creates the Stripe session **and emails the files itself** | Stripe + email keys, private file storage |
 
-Create one product per edition per currency in your provider, priced at the same
-number in each currency.
+### The quick route — `links`
 
-### Where the actual book file goes
+If you would rather not run any of this yourself, use a shop that handles
+payment *and* file delivery: **Lemon Squeezy**, **Payhip**, **Gumroad** or
+**Paddle**. Upload Volume I and Volume II there, price each edition, and paste
+the resulting checkout URLs:
 
-**Not in this repository.** Anything in `public/` is downloadable by anyone who
-guesses the URL, so a PDF, EPUB or M4B placed there is simply free. Upload the
-file to your payment provider's digital-delivery feature instead — Stripe, Lemon
-Squeezy, Paddle and Gumroad all email the file (or a signed link) after payment.
-This site's job is the shop window; the provider's job is the vault.
+```js
+checkout: { mode: 'links' },
 
-The only audio that belongs in `public/audio/` is the **sample**.
+editions: [
+  {
+    id: 'ebook',
+    price: 18,
+    links: {
+      USD: 'https://yourshop.lemonsqueezy.com/checkout/buy/xxxx',
+      GBP: 'https://yourshop.lemonsqueezy.com/checkout/buy/yyyy',
+      EUR: 'https://yourshop.lemonsqueezy.com/checkout/buy/zzzz',
+    },
+  },
+],
+```
+
+They take care of the money, the VAT, the receipt and the download email. This
+is the honest recommendation for one person selling one book.
+
+### The integrated route — `stripe`
+
+The site takes the payment through Stripe and emails the files itself, using
+three small functions in `api/`. No book file ever goes in this repository.
+
+```
+api/checkout.js      creates the Stripe Checkout session
+api/webhook.js       Stripe calls it once the money moves → emails the links
+api/download.js      hands over a file to a signed, expiring link
+api/setup-check.js   tells you which of the pieces below are actually set
+```
+
+**Step 1 — put the files somewhere private.**
+Vercel Blob, Cloudflare R2, Amazon S3, Backblaze B2 — anywhere that gives you a
+URL you keep to yourself. Do **not** put them in `public/`: everything there is
+downloadable by anyone who guesses the path.
+
+**Step 2 — give each file a key, and map the keys to those URLs.**
+The keys are yours to choose. Two volumes in two formats is four keys:
+
+```js
+// src/content/book.js
+fileLabels: {
+  'ebook-vol-1': 'Volume I — EPUB & PDF',
+  'ebook-vol-2': 'Volume II — EPUB & PDF',
+  'audiobook-vol-1': 'Volume I — Audiobook (M4B)',
+  'audiobook-vol-2': 'Volume II — Audiobook (M4B)',
+},
+
+editions: [
+  { id: 'ebook',     files: ['ebook-vol-1', 'ebook-vol-2'] },
+  { id: 'audiobook', files: ['audiobook-vol-1', 'audiobook-vol-2'] },
+  { id: 'bundle',    files: ['ebook-vol-1', 'ebook-vol-2', 'audiobook-vol-1', 'audiobook-vol-2'] },
+  { id: 'hardcover', files: [] },   // arrives in a van, not an inbox
+]
+```
+
+One purchase of the eBook edition therefore delivers **both volumes** — one link
+each. Sell them separately instead by making Volume I and Volume II their own
+editions with one file each.
+
+**Step 3 — set the environment variables** in Vercel (Project → Settings →
+Environment Variables). None of these belong in the repository:
+
+| Variable | What it is |
+|---|---|
+| `STRIPE_SECRET_KEY` | `sk_live_…` (or `sk_test_…` while you are trying it) |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_…`, from the webhook endpoint you create in step 4 |
+| `RESEND_API_KEY` | From [resend.com](https://resend.com) — the free tier is enough to start |
+| `MAIL_FROM` | `Your Press <books@yourdomain.com>`, on a domain verified with Resend |
+| `DOWNLOAD_SECRET` | Any long random string: `openssl rand -hex 32` |
+| `BOOK_FILES` | JSON mapping your keys to the private URLs (below) |
+| `SITE_URL` | Optional. `https://yourdomain.com`, if you do not want the request's own host used |
+
+```json
+{
+  "ebook-vol-1": "https://your-bucket.r2.cloudflarestorage.com/vol-1.epub?…",
+  "ebook-vol-2": "https://your-bucket.r2.cloudflarestorage.com/vol-2.epub?…",
+  "audiobook-vol-1": "https://your-bucket.r2.cloudflarestorage.com/vol-1.m4b?…",
+  "audiobook-vol-2": "https://your-bucket.r2.cloudflarestorage.com/vol-2.m4b?…"
+}
+```
+
+**Step 4 — tell Stripe where to knock.** In the Stripe dashboard, Developers →
+Webhooks → Add endpoint:
+
+- URL: `https://yourdomain.com/api/webhook`
+- Event: `checkout.session.completed`
+
+Copy the signing secret it gives you into `STRIPE_WEBHOOK_SECRET`.
+
+**Step 5 — switch the mode** to `'stripe'` in `src/content/book.js`, and deploy.
+
+**Step 6 — check your work.** Open `https://yourdomain.com/api/setup-check`. It
+reports which pieces are present — never their values — and, importantly, which
+file keys are declared on an edition but missing from `BOOK_FILES`:
+
+```json
+{
+  "checkoutMode": "stripe",
+  "stripe": { "secretKey": true, "webhookSecret": true },
+  "email": { "resendKey": true, "from": true },
+  "downloads": { "secret": true, "filesDeclared": ["ebook-vol-1", "…"], "missing": [] }
+}
+```
+
+**Step 7 — buy your own book.** With Stripe in test mode, card `4242 4242 4242
+4242`, any future expiry, any CVC. You should get the email within seconds, and
+each link should download the right file.
+
+### What the buyer experiences
+
+1. Picks an edition, fills in name, email and quantity, presses the button.
+2. Goes to Stripe's own payment page, in their own currency.
+3. Comes back to the site, which shows a stamped card: *Paid. Check your email.*
+4. Gets an email from you with one link per file, valid for **30 days**.
+5. Each link is signed against `DOWNLOAD_SECRET` — it cannot be guessed, edited
+   or shared past its expiry — and redirects to the private file. The buyer
+   never sees where the file actually lives.
+
+If the email provider has a moment, the webhook returns an error and Stripe
+retries, so a buyer who has paid always ends up with their book.
+
+### Before you take real money
+
+- Showing `£34` and charging `$34` is a different amount of money. Both routes
+  charge in the currency shown, so keep it that way if you change them.
+- Update `fineprint` in the config to describe your actual terms.
+- Digital sales carry VAT/sales-tax obligations in most places. The hosted shops
+  in the `links` route handle this for you as merchant of record; with Stripe it
+  is yours to handle (Stripe Tax can do it).
 
 ## 6. The gallery
 
@@ -172,7 +291,7 @@ paper. `kind` picks how it is drawn:
 | `kind` | What it draws |
 |---|---|
 | `spread` | A two-page interior spread with a diagram. Takes `chapter`, `figure`, `caption`. |
-| `portrait` | An author portrait using `author` and `authorRole`. |
+| `portrait` | An author portrait using `author` and `authorRole`. Add `photo: '/gallery/you.jpg'` for a real one, fitted to the plate; leave it off for the drawn silhouette. |
 | `napkin` | A monogrammed napkin. Takes `scrawl`, `number`, `label`. |
 | `chart` | A two-line chart. Takes `seriesA`, `seriesB`. |
 | `crest` | An institutional crest using `imprint` and `monogram`. Takes `motto`. |
@@ -240,5 +359,6 @@ fallback, which is what `?currency=` is for.
 - [ ] `editions` with real prices, and an audiobook sample in `public/audio/` if you have one
 - [ ] Payment links per currency, or leave the demo checkout in place
 - [ ] `plates` — rewrite the copy, or swap in photographs
+- [ ] `checkout.mode`, and the files/keys/environment variables that go with it
 - [ ] `stats`, `pullquote`, `whisperSeeds`, `quotes`
 - [ ] `fineprint` — say what is actually true about your checkout
