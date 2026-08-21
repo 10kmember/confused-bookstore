@@ -8,29 +8,25 @@ import { book } from '../content/book.js';
 const STATS = book.stats;
 
 export function initManifesto() {
-  const list = document.getElementById('stats');
+  // The rows ship in the HTML so the numbers are readable without JavaScript;
+  // here they are simply wound back to zero and counted up on arrival.
+  const rows = [...document.querySelectorAll('#stats .stat')];
 
-  STATS.forEach((stat, i) => {
-    const li = document.createElement('li');
-    li.className = 'stat';
-    li.innerHTML = `
-      <span class="stat__num">${String(i + 1).padStart(2, '0')}</span>
-      <span class="stat__value" data-value="${stat.value}">0${stat.suffix || ''}</span>
-      <span class="stat__body">
-        <span class="stat__label">${stat.label}</span>
-        <span class="stat__note">${stat.note}</span>
-      </span>`;
-    list.appendChild(li);
-
+  rows.forEach((li, i) => {
+    const stat = STATS[i];
     const valueEl = li.querySelector('.stat__value');
+    if (!stat || !valueEl) return;
+
+    const suffix = stat.suffix || '';
     const counter = { n: 0 };
+    valueEl.textContent = `0${suffix}`;
 
     gsap.to(counter, {
       n: stat.value,
       duration: 1.8,
       ease: 'power2.out',
       snap: { n: 1 },
-      onUpdate: () => (valueEl.textContent = `${Math.round(counter.n)}${stat.suffix || ''}`),
+      onUpdate: () => (valueEl.textContent = `${Math.round(counter.n)}${suffix}`),
       scrollTrigger: { trigger: li, start: 'top 82%', once: true },
     });
 

@@ -22,7 +22,6 @@ export async function initReadingRoom() {
 
   const hud = {
     objects: document.getElementById('hud-objects'),
-    gravity: document.getElementById('hud-gravity'),
     chaos: document.getElementById('hud-chaos'),
   };
 
@@ -34,7 +33,6 @@ export async function initReadingRoom() {
   await RAPIER.init();
   document.getElementById('hud-engine').textContent = 'RAPIER 2D';
 
-  let gravitySign = 1;
   const world = new RAPIER.World({ x: 0, y: 9.81 });
   const events = new RAPIER.EventQueue(true);
   const bodies = [];
@@ -201,24 +199,6 @@ export async function initReadingRoom() {
 
   /* ── controls ──────────────────────────────────────────── */
   document.getElementById('room-rain').addEventListener('click', () => litter(10));
-  document.getElementById('room-gravity').addEventListener('click', (e) => {
-    gravitySign *= -1;
-    world.gravity = { x: 0, y: 9.81 * gravitySign };
-    hud.gravity.textContent = (9.81 * gravitySign).toFixed(2);
-    e.currentTarget.textContent = gravitySign > 0 ? 'Invert gravity' : 'Restore gravity';
-    bodies.forEach((b) => b.body.wakeUp());
-  });
-  document.getElementById('room-reset').addEventListener('click', () => {
-    for (let i = bodies.length - 1; i >= 0; i--) {
-      if (bodies[i].hero) continue;
-      world.removeRigidBody(bodies[i].body);
-      bodies.splice(i, 1);
-    }
-    hero.body.setTranslation({ x: W / PPM / 2, y: H / PPM / 2 }, true);
-    hero.body.setLinvel({ x: 0, y: 0 }, true);
-    hero.body.setAngvel(0, true);
-    litter(8);
-  });
 
   /* ── rain on first arrival ─────────────────────────────── */
   let seeded = false;

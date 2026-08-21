@@ -36,7 +36,40 @@ function bookContent() {
         const url = siteUrl();
         const cover = book.cover?.image ? (url ? url + book.cover.image : book.cover.image) : '';
 
+        // Rendered here rather than by the browser, so the shop and the
+        // numbers are in the HTML that ships: readable with JavaScript off, and
+        // present for anything that reads the page without running it.
+        const editionChips = book.editions
+          .map((item) => {
+            const checked = item.id === listed.id ? ' checked' : '';
+            const soon = item.available === false;
+            return `<label class="edition${soon ? ' edition--soon' : ''}">
+                <input type="radio" name="edition" value="${escape(item.id)}"${checked} />
+                <span class="edition__label">${escape(item.label)}</span>
+                <span class="edition__price">$${item.price}</span>${
+                  soon ? '\n                <span class="edition__soon">soon</span>' : ''
+                }
+              </label>`;
+          })
+          .join('\n              ');
+
+        const statRows = book.stats
+          .map(
+            (stat, i) => `<li class="stat">
+                <span class="stat__num">${String(i + 1).padStart(2, '0')}</span>
+                <span class="stat__value" data-value="${stat.value}">${stat.value}${escape(stat.suffix || '')}</span>
+                <span class="stat__body">
+                  <span class="stat__label">${escape(stat.label)}</span>
+                  <span class="stat__note">${escape(stat.note)}</span>
+                </span>
+              </li>`
+          )
+          .join('\n              ');
+
         const tokens = {
+          editionChips,
+          statRows,
+          editionDetail: escape(listed.detail || ''),
           // Each carries its own leading break, so an empty one leaves no gap.
           canonical: url ? `\n    <link rel="canonical" href="${url}/" />` : '',
           ogUrl: url ? `\n    <meta property="og:url" content="${url}/" />` : '',
@@ -93,7 +126,10 @@ function structuredData() {
             name: e.label,
             price: e.price,
             priceCurrency: 'USD',
-            availability: 'https://schema.org/InStock',
+            availability:
+              e.available === false
+                ? 'https://schema.org/PreOrder'
+                : 'https://schema.org/InStock',
           })),
         }
       : {}),

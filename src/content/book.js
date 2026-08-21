@@ -90,6 +90,7 @@ export const book = {
       price: 34,
       tagline: '247 pages. Hardcover. Regrettably real weight.',
       detail: 'Cloth boards, gold foil, and one (1) author photograph taken by his mother.',
+      formats: ['Hardcover'],
       /** Nothing to email — this one arrives in a van. */
       files: [],
       links: { USD: '', GBP: '', EUR: '' },
@@ -100,6 +101,8 @@ export const book = {
       price: 18,
       tagline: 'Instant, weightless, equally confusing. Both volumes.',
       detail: 'EPUB and PDF. Chapter nine still appears twice; this is not a formatting error.',
+      /** Listed in llms.txt so a reader knows what they are getting. */
+      formats: ['EPUB', 'PDF'],
       files: ['ebook-vol-1', 'ebook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },
@@ -107,8 +110,19 @@ export const book = {
       id: 'audiobook',
       label: 'Audiobook',
       price: 26,
+      /**
+       * Set `available: false` for anything you have not finished yet. The chip
+       * stays on the page — people should know it is coming — but the portal
+       * says so plainly and offers whatever you name in `suggest` instead.
+       */
+      available: false,
+      availability: {
+        note: 'Still in the recording booth. Expected in the spring.',
+        suggest: 'ebook',
+      },
       tagline: 'Eight hours and twelve minutes, read by the author, at length.',
       detail: 'Unabridged. He does the voices. All of them are his.',
+      formats: ['M4B', 'MP3'],
       audio: {
         /** e.g. '/audio/sample.mp3' — a short clip. Null hides the player. */
         sample: null,
@@ -122,8 +136,14 @@ export const book = {
       id: 'bundle',
       label: 'All three',
       price: 58,
+      available: false,
+      availability: {
+        note: 'Waiting on the audiobook. The other two are ready now.',
+        suggest: 'ebook',
+      },
       tagline: 'The object, the file and the voice. Both volumes of each.',
       detail: 'Three times the confusion, once the postage.',
+      formats: ['Hardcover', 'EPUB', 'PDF', 'M4B'],
       files: ['ebook-vol-1', 'ebook-vol-2', 'audiobook-vol-1', 'audiobook-vol-2'],
       links: { USD: '', GBP: '', EUR: '' },
     },

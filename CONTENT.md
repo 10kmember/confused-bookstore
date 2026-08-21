@@ -102,6 +102,32 @@ ambient-sound toggle, and it stops when the visitor switches to another edition.
 
 Add, remove or reorder editions freely; two is fine, five is fine.
 
+### When something is not finished yet
+
+Do not hide it — say so. Mark the edition unavailable and name what to offer
+instead:
+
+```js
+{
+  id: 'audiobook',
+  price: 26,
+  available: false,
+  availability: {
+    note: 'Still in the recording booth. Expected in the spring.',
+    suggest: 'ebook',           // the id of an edition that is ready
+  },
+},
+```
+
+The chip stays on the page with a **soon** badge, the price still shows, and
+choosing it explains the wait and offers a button that switches to the edition
+you named. The buy button is disabled while it is selected, so nobody can pay
+for something you cannot send. Everything that mentions the book — `llms.txt`
+and the schema.org data included — reports it as a pre-order rather than in
+stock.
+
+Bundles containing an unfinished edition should be marked the same way.
+
 ## 4. Prices and regions
 
 The price is **one number, the same everywhere in the world**. Only the currency
@@ -324,6 +350,9 @@ paper. `kind` picks how it is drawn:
 | `crest` | An institutional crest using `imprint` and `monogram`. Takes `motto`. |
 | `errata` | A corrections page. Takes `items: [[page, note], …]`. |
 | `image` | **Your own photograph.** Takes `image: '/gallery/whatever.jpg'`. |
+
+`portrait` also takes `photo: '/gallery/you.jpg'` — the photograph fills the
+plate and the name, role and caption stay set beneath it.
 
 Every plate needs `kicker`, `title` and `body` — they fill the pop-up modal.
 

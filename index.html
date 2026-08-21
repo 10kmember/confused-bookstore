@@ -16,6 +16,44 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
+    <noscript>
+      <style>
+        /* Without JavaScript the library cannot dream — but the shop must still
+           open. Lift the loading screen, retire the parts that are built at
+           runtime, and let the book, the price and the checkout through. */
+        #loader,
+        .cursor-canvas,
+        .layer,
+        .rail,
+        .progress,
+        .menu-toggle,
+        .audio-toggle,
+        .scroll-cue,
+        #spiral,
+        #reading-room,
+        #whispers,
+        .sample {
+          display: none !important;
+        }
+        body {
+          overflow: auto;
+        }
+        .noscript {
+          position: relative;
+          margin: 0;
+          padding: 0.9rem var(--gutter);
+          background: var(--rose);
+          color: var(--cream);
+          font-size: 0.82rem;
+          letter-spacing: 0.02em;
+          text-align: center;
+        }
+      </style>
+      <p class="noscript">
+        JavaScript is switched off, so the library is holding still — no 3D, no
+        physics, no whispers. The book, the price and the checkout all still work.
+      </p>
+    </noscript>
     <!-- ══ LOADING: a stack of books falling into place ══ -->
     <div class="loader" id="loader" aria-hidden="true">
       <canvas class="loader__canvas" id="loader-canvas"></canvas>
@@ -123,8 +161,6 @@
           </div>
           <div class="room__tools">
             <button class="chip" id="room-rain" data-sfx="thud">Make it rain</button>
-            <button class="chip" id="room-gravity" data-sfx="thud">Invert gravity</button>
-            <button class="chip" id="room-reset" data-sfx="thud">Tidy up</button>
           </div>
         </div>
       </section>
@@ -138,7 +174,9 @@
             Everything we know about this book, stated with total confidence and no evidence.
           </p>
         </div>
-        <ol class="stats" id="stats"></ol>
+        <ol class="stats" id="stats">
+              {{statRows}}
+            </ol>
         <blockquote class="pullquote">“{{pullquote}}”</blockquote>
       </section>
 
@@ -183,6 +221,7 @@
 
             <fieldset class="editions" id="editions">
               <legend class="sr-only">Choose an edition</legend>
+              {{editionChips}}
             </fieldset>
 
             <div class="sample" id="sample" hidden>
@@ -197,7 +236,12 @@
             <p class="price" id="price" tabindex="0" aria-describedby="price-quote">
               <span class="price__currency" id="price-currency">$</span><span class="price__value" id="price-value">{{priceWhole}}</span><span class="price__cents" id="price-cents">{{priceCents}}</span>
             </p>
-            <p class="edition-detail" id="edition-detail"></p>
+            <p class="edition-detail" id="edition-detail">{{editionDetail}}</p>
+
+            <div class="notice" id="edition-notice" hidden>
+              <p class="notice__text"></p>
+              <button class="notice__swap" type="button"></button>
+            </div>
             <p class="price__quote" id="price-quote" role="status">Hover the price. It will not discount. It will only quote.</p>
 
             <form class="checkout" id="checkout" novalidate>
@@ -234,10 +278,7 @@
         <div class="void__inner">
           <p class="void__line">The book drifts off to be misunderstood elsewhere.</p>
           <button class="btn btn--gold btn--big" data-goto="threshold" data-sfx="chime">Start over?</button>
-          <p class="void__credit">
-            No footer. Footers imply an ending. <br />
-            A design experiment — Three.js · Rapier · GSAP · Web Audio.
-          </p>
+          <p class="void__credit">No footer. Footers imply an ending.</p>
         </div>
       </section>
     </main>
@@ -268,12 +309,6 @@
       </div>
     </div>
 
-    <noscript>
-      <div class="noscript">
-        This shelf is empty. Like your understanding. <br />(JavaScript is required for the library to
-        dream.)
-      </div>
-    </noscript>
 
     <script type="module" src="/src/main.js"></script>
   </body>

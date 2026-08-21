@@ -40,15 +40,32 @@ const breathe = () => new Promise((resolve) => requestAnimationFrame(() => setTi
 const running = [];
 const addRunner = (mod) => mod?.frame && running.push(mod.frame);
 
-/** Run `start` once `selector` comes within reach of the viewport. */
-function whenNear(selector, start, rootMargin = '900px') {
+/**
+ * Start one part of the page without letting it take the rest down with it.
+ *
+ * A browser with WebGL switched off, WebAssembly blocked or canvas readback
+ * refused — privacy browsers do all three — used to lose the entire site to a
+ * single throw. Every section is now independent: one can fail and the shop,
+ * the words and the book all carry on.
+ */
+function start(name, init) {
+  try {
+    return init();
+  } catch (error) {
+    console.error(`${name} could not start; the rest of the page continues.`, error);
+    return null;
+  }
+}
+
+/** Run `begin` once `selector` comes within reach of the viewport. */
+function whenNear(selector, begin, rootMargin = '900px') {
   const el = document.querySelector(selector);
   if (!el) return;
   const io = new IntersectionObserver(
     (entries) => {
       if (!entries[0].isIntersecting) return;
       io.disconnect();
-      start();
+      begin();
     },
     { rootMargin }
   );
@@ -67,23 +84,23 @@ async function boot() {
   }
   loader.set(0.4);
 
-  smoothScroll.init();
-  initCursor();
-  initChrome();
+  start('Smooth scrolling', () => smoothScroll.init());
+  start('The cursor', initCursor);
+  start('The chrome', initChrome);
   loader.set(0.55);
   await breathe();
 
-  addRunner(initThreshold());
+  addRunner(start('The threshold', initThreshold));
   loader.set(0.72);
   await breathe();
 
-  addRunner(initSpiral());
-  initManifesto();
+  addRunner(start('The spiral gallery', initSpiral));
+  start('The manifesto', initManifesto);
   loader.set(0.86);
   await breathe();
 
-  addRunner(initWhispers());
-  addRunner(initVoid());
+  addRunner(start('The whisper wall', initWhispers));
+  addRunner(start('The void', initVoid));
   loader.set(0.95);
   await breathe();
 
@@ -97,10 +114,10 @@ async function boot() {
   const returning = new URLSearchParams(location.search).has('purchase');
   let portal = null;
   if (returning) {
-    portal = initPortal();
+    portal = start('The purchase portal', initPortal);
     addRunner(portal);
   } else {
-    whenNear('#portal', () => addRunner(initPortal()));
+    whenNear('#portal', () => addRunner(start('The purchase portal', initPortal)));
   }
   whenNear('.room__stage', async () => {
     try {
@@ -114,10 +131,19 @@ async function boot() {
   });
 
   // One clock for everybody: sections measure their own deltas from
-  // performance.now(), so the ticker must hand them the same time base.
+  // performance.now(), so the ticker must hand them the same time base. A
+  // section that throws mid-frame is retired rather than allowed to break the
+  // loop for everything after it.
   gsap.ticker.add(() => {
     const now = performance.now();
-    for (const frame of running) frame(now);
+    for (let i = running.length - 1; i >= 0; i--) {
+      try {
+        running[i](now);
+      } catch (error) {
+        console.error('A section stopped animating and was retired.', error);
+        running.splice(i, 1);
+      }
+    }
   });
 
   ScrollTrigger.refresh();

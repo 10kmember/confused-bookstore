@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { createStage } from '../three/stage.js';
 import { BookController, createBook, createHalo } from '../three/book.js';
+import { drawFlatBook } from '../three/flatBook.js';
 import { P, rgba } from '../core/palette.js';
 import { audio } from '../core/audio.js';
 import { smoothScroll } from '../core/smoothScroll.js';
@@ -97,6 +98,23 @@ export function initThreshold() {
   canvas.dataset.grab = '';
 
   const stage = createStage(canvas, { fov: 34 });
+
+  // No WebGL: the cover is a canvas either way, so it is simply drawn flat and
+  // the section keeps its shape.
+  if (!stage) {
+    drawFlatBook(canvas, {
+      // beside the headline on wide screens, centred once the layout stacks
+      region: () => (window.innerWidth > 900 ? { x: 0.52, w: 0.48 } : { x: 0, w: 1 }),
+    });
+    document.getElementById('hero-hint').textContent =
+      'Your browser is not showing 3D. The book is still here.';
+    return {
+      frame() {
+        if (!env.reduced && window.scrollY < window.innerHeight * 1.4) field.draw(window.scrollY);
+      },
+    };
+  }
+
   const book = createBook({ scale: 0.94 });
   const halo = createHalo({ opacity: 0.05, size: 3 });
   stage.scene.add(book, halo);

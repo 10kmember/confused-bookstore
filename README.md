@@ -171,6 +171,25 @@ Each of these was a deliberate trade, not an omission:
 
 ---
 
+## When the browser says no
+
+Privacy browsers block things. Tor's Safer mode switches off WebGL and
+WebAssembly; canvas readback is refused; corporate machines have no GPU. The
+site is built so none of that is fatal:
+
+- **Every section starts independently.** One throwing does not stop the
+  others, and a section that throws mid-frame is retired rather than allowed to
+  break the animation loop for everything after it.
+- **No WebGL** → the cover is drawn flat on a 2D canvas, beside the headline
+  exactly where the 3D one sat, and the shop carries on unchanged.
+- **No WebAssembly** → the reading room says so on its own readout.
+- **No Web Audio** → the sound toggle simply does nothing.
+- **No JavaScript at all** → the loading screen lifts, the runtime-built
+  sections stand down, and the book, the price, the editions and the checkout
+  are all in the HTML that shipped, because they are rendered at build time.
+
+Verified by loading the site with each capability removed in turn.
+
 ## Accessibility and degradation
 
 - `prefers-reduced-motion` is honoured: tweens resolve instantly, the custom

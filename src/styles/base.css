@@ -732,18 +732,8 @@ body.has-quill * {
 
 /* ── Misc ─────────────────────────────────────────────────── */
 
-.noscript {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  background: var(--cream);
-  color: var(--rose);
-  font-size: 1.2rem;
-  z-index: 200;
-  padding: 2rem;
-}
+/* the no-JavaScript banner is styled inside <noscript> so it cannot show up
+   for anyone else; nothing needed here */
 
 .chip {
   background: rgb(var(--cream-rgb) / 0.7);

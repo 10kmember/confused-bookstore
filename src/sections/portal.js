@@ -2,6 +2,7 @@ import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { createStage } from '../three/stage.js';
 import { BookController, createBook, createHalo } from '../three/book.js';
+import { drawFlatBook } from '../three/flatBook.js';
 import { audio } from '../core/audio.js';
 import { smoothScroll } from '../core/smoothScroll.js';
 import { book, edition } from '../content/book.js';
@@ -16,22 +17,32 @@ export function initPortal() {
   const canvas = document.getElementById('portal-webgl');
   canvas.dataset.grab = '';
   const stage = createStage(canvas, { fov: 30 });
-  const bookMesh = createBook({ scale: 1.05 });
-  const halo = createHalo({ opacity: 0.07, size: 3.2 });
-  halo.position.z = -1.2;
-  stage.scene.add(bookMesh, halo);
-  stage.camera.position.z = 5.4;
-  if (stage.fx) stage.fx.uVignette.value = 0.75;
+  let bookMesh = null;
+  let halo = null;
+  let controller = null;
 
-  const controller = new BookController(bookMesh, canvas, { stiffness: 22 });
-  controller.onThrow = (force) => audio.thud(0.3 + force * 0.5);
+  if (stage) {
+    bookMesh = createBook({ scale: 1.05 });
+    halo = createHalo({ opacity: 0.07, size: 3.2 });
+    halo.position.z = -1.2;
+    stage.scene.add(bookMesh, halo);
+    stage.camera.position.z = 5.4;
+    if (stage.fx) stage.fx.uVignette.value = 0.75;
 
-  gsap.from(bookMesh.position, {
-    y: -2.4,
-    duration: 1.6,
-    ease: 'power3.out',
-    scrollTrigger: { trigger: canvas, start: 'top 80%', once: true },
-  });
+    controller = new BookController(bookMesh, canvas, { stiffness: 22 });
+    controller.onThrow = (force) => audio.thud(0.3 + force * 0.5);
+
+    gsap.from(bookMesh.position, {
+      y: -2.4,
+      duration: 1.6,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: canvas, start: 'top 80%', once: true },
+    });
+  } else {
+    // Without WebGL the shop still has to work: the cover goes on flat, and
+    // everything that sells the book carries on unchanged.
+    drawFlatBook(canvas, { night: true });
+  }
 
   /* ── which edition ─────────────────────────────────────────────────────
      Hardcover, eBook, audiobook, bundle — whatever src/content/book.js
@@ -45,21 +56,22 @@ export function initPortal() {
   const totalEl = document.getElementById('checkout-total');
   const cta = document.querySelector('.btn--cta');
   const ctaLabel = cta.textContent.trim();
+  const notice = document.getElementById('edition-notice');
 
   let current = edition(book.defaultEdition);
 
+  // The chips ship in the HTML (see the build plugin) so the shop is readable
+  // without JavaScript. All that is added here is behaviour, and the visitor's
+  // own currency in place of the listed one.
   book.editions.forEach((item) => {
-    const label = document.createElement('label');
-    label.className = 'edition';
-    label.innerHTML = `
-      <input type="radio" name="edition" value="${item.id}" ${item.id === current.id ? 'checked' : ''} />
-      <span class="edition__label">${item.label}</span>
-      <span class="edition__price">${format(item.price, { cents: false })}</span>`;
-    label.querySelector('input').addEventListener('change', () => {
+    const input = editionsEl.querySelector(`input[value="${item.id}"]`);
+    if (!input) return;
+    const chip = input.closest('.edition');
+    chip.querySelector('.edition__price').textContent = format(item.price, { cents: false });
+    input.addEventListener('change', () => {
       select(item.id);
       audio.rustle(0.6);
     });
-    editionsEl.appendChild(label);
   });
 
   /** The payment link for this edition in this visitor's currency, if any. */
@@ -73,6 +85,9 @@ export function initPortal() {
     return declared;
   };
 
+  /** Anything an author has not finished yet. */
+  const ready = (item) => item.available !== false;
+
   function select(id) {
     current = edition(id);
     const price = parts(current.price);
@@ -84,8 +99,37 @@ export function initPortal() {
     detailEl.textContent = current.detail || '';
     captionEl.textContent = current.tagline || '';
 
+    // An edition that is not ready says so, and points at one that is, rather
+    // than taking money for something nobody can send.
+    const alternative = edition(current.availability?.suggest);
+    const suggesting = !ready(current) && alternative && ready(alternative) && alternative.id !== current.id;
+
+    document.getElementById('portal').classList.toggle('is-unavailable', !ready(current));
+    notice.hidden = ready(current);
+    if (!ready(current)) {
+      notice.querySelector('.notice__text').textContent =
+        current.availability?.note || 'This edition is not ready yet.';
+      const swap = notice.querySelector('.notice__swap');
+      swap.hidden = !suggesting;
+      if (suggesting) {
+        swap.textContent = `Take the ${alternative.label} instead — ${format(alternative.price, { cents: false })}`;
+        swap.onclick = () => {
+          const input = editionsEl.querySelector(`input[value="${alternative.id}"]`);
+          if (input) {
+            input.checked = true;
+            select(alternative.id);
+            audio.chime();
+          }
+        };
+      }
+    }
+
+    cta.disabled = !ready(current);
+    cta.textContent = ready(current) ? ctaLabel : 'Not ready yet';
+
     const delivered = current.files?.length;
     fineprintEl.textContent =
+      (!ready(current) && (current.availability?.note ? 'Nothing is charged for an edition that is not finished.' : null)) ||
       {
         stripe: delivered
           ? `Paid in ${CURRENCIES[currency()].label} through Stripe. ${delivered === 1 ? 'The file lands' : 'The files land'} in your inbox the moment the payment clears.`
@@ -146,6 +190,13 @@ export function initPortal() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!ready(current)) {
+      audio.thud(0.4);
+      notice.classList.remove('is-shaking');
+      void notice.offsetWidth;
+      notice.classList.add('is-shaking');
+      return;
+    }
     const name = form.querySelector('#co-name');
     const email = form.querySelector('#co-email');
 
@@ -196,7 +247,7 @@ export function initPortal() {
       { scale: 1, opacity: 0.85, rotate: -6, duration: 0.7, ease: 'back.out(2)' }
     );
     // spin the book in celebration of a purchase that never happened
-    controller.angVel.y += 9;
+    if (controller) controller.angVel.y += 9;
   });
 
   /** Ask our own function for a Checkout session, then go there. */
@@ -279,7 +330,7 @@ export function initPortal() {
       const dt = (now - last) / 1000;
       last = now;
       sample.draw();
-      if (!stage.visible) return;
+      if (!stage || !stage.visible) return;
       if (!controller.dragging) controller.angVel.y += 0.02 * dt * 60;
       controller.update(dt);
       halo.position.set(bookMesh.position.x, bookMesh.position.y, bookMesh.position.z - 1.2);

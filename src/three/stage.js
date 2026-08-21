@@ -14,12 +14,21 @@ import { env, tier } from '../util/env.js';
  * so three stages can coexist on one page without melting a laptop.
  */
 export function createStage(canvas, { alpha = true, fov = 32, post = true } = {}) {
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    alpha,
-    antialias: tier() > 0,
-    powerPreference: 'high-performance',
-  });
+  // WebGL is not a given: privacy browsers block it, old machines lack it, and
+  // a driver can simply refuse. Returning null lets the caller show the book
+  // another way instead of taking the rest of the page down with it.
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha,
+      antialias: tier() > 0,
+      powerPreference: 'high-performance',
+    });
+  } catch (error) {
+    console.warn('WebGL is unavailable; falling back to a flat cover.', error);
+    return null;
+  }
   // Post-processing doubles the fill cost; 1.75 is the point where the extra
   // sharpness stops being worth the frames.
   renderer.setPixelRatio(Math.min(env.dpr, post ? 1.75 : 2));
